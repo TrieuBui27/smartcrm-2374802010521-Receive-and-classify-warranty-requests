@@ -1,0 +1,37 @@
+<mxfile host="app.diagrams.net" agent="Claude" version="24.0.0">
+  <diagram id="uc-l2" name="Use case L2">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+                <mxCell id="sys" value="Hệ thống Smart CRM – Luồng L2: Tiếp nhận và phân loại yêu cầu bảo hành" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=10;spacingTop=2;fontStyle=1;fontSize=13;" vertex="1" parent="1"><mxGeometry x="243" y="24" width="797" height="888" as="geometry"/></mxCell>
+        <mxCell id="uc2" value="UC2. Ghi nhận khách hàng và thiết bị mới" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="272" y="65" width="288" height="70" as="geometry"/></mxCell>
+        <mxCell id="uc1" value="UC1. Tra cứu khách hàng theo số điện thoại" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="272" y="203" width="288" height="70" as="geometry"/></mxCell>
+        <mxCell id="uc3" value="UC3. Tạo phiếu bảo hành" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="272" y="341" width="288" height="70" as="geometry"/></mxCell>
+        <mxCell id="uc4" value="UC4. Phân loại nhóm sự cố và mức ưu tiên" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="272" y="480" width="288" height="70" as="geometry"/></mxCell>
+        <mxCell id="uc9" value="UC9. Đánh dấu phiếu quá hạn" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="711" y="128" width="288" height="70" as="geometry"/></mxCell>
+        <mxCell id="uc5" value="UC5. Sinh hạn cam kết" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="711" y="341" width="288" height="70" as="geometry"/></mxCell>
+        <mxCell id="uc8" value="UC8. Kiểm tra tình trạng bảo hành" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="711" y="480" width="288" height="70" as="geometry"/></mxCell>
+        <mxCell id="uc6" value="UC6. Xem danh sách phiếu bảo hành" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="491" y="658" width="288" height="70" as="geometry"/></mxCell>
+        <mxCell id="uc7" value="UC7. Chuyển trạng thái phiếu" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="491" y="797" width="288" height="70" as="geometry"/></mxCell>
+        <mxCell id="nv" value="Nhân viên tiếp nhận" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=12;" vertex="1" parent="1"><mxGeometry x="90" y="486" width="30" height="60" as="geometry"/></mxCell>
+        <mxCell id="ql" value="Quản lý trung tâm" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=12;" vertex="1" parent="1"><mxGeometry x="1145" y="486" width="30" height="60" as="geometry"/></mxCell>
+        <mxCell id="sch" value="Bộ lập lịch&lt;br&gt;«system»" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=12;" vertex="1" parent="1"><mxGeometry x="1145" y="128" width="30" height="60" as="geometry"/></mxCell>
+        <mxCell id="e1" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1;" edge="1" parent="1" source="nv" target="uc2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1;" edge="1" parent="1" source="nv" target="uc1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1;" edge="1" parent="1" source="nv" target="uc3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1;" edge="1" parent="1" source="nv" target="uc6"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1;" edge="1" parent="1" source="nv" target="uc7"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1;" edge="1" parent="1" source="ql" target="uc6"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1;" edge="1" parent="1" source="ql" target="uc7"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" value="" style="endArrow=none;html=1;rounded=0;strokeWidth=1;" edge="1" parent="1" source="sch" target="uc9"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" value="«extend»" style="endArrow=open;endSize=14;dashed=1;dashPattern=8 8;html=1;rounded=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="uc2" target="uc1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" value="«include»" style="endArrow=open;endSize=14;dashed=1;dashPattern=8 8;html=1;rounded=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="uc3" target="uc1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e11" value="«include»" style="endArrow=open;endSize=14;dashed=1;dashPattern=8 8;html=1;rounded=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="uc3" target="uc5"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e12" value="«include»" style="endArrow=open;endSize=14;dashed=1;dashPattern=8 8;html=1;rounded=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="uc3" target="uc4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e13" value="«include»" style="endArrow=open;endSize=14;dashed=1;dashPattern=8 8;html=1;rounded=0;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="uc3" target="uc8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="legend" value="CHÚ THÍCH KÝ HIỆU&lt;br&gt;Khung đậm = ranh giới hệ thống&lt;br&gt;Hình người = actor (ngoài ranh giới)&lt;br&gt;Actor «system» = actor không phải người&lt;br&gt;Elip = use case (động từ + đối tượng)&lt;br&gt;Đường liền = association (actor dùng use case)&lt;br&gt;Đường đứt «include» = use case gốc luôn gọi use case đích&lt;br&gt;Đường đứt «extend» = mũi tên từ use case mở rộng tới use case gốc, chỉ xảy ra khi có điều kiện" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;fontSize=10;strokeColor=#6c8ebf;fillColor=#ffffff;arcSize=4;" vertex="1" parent="1"><mxGeometry x="14" y="647" width="220" height="266" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
