@@ -8,6 +8,9 @@ Thuật ngữ dùng đúng Bảng thuật ngữ ở `srs.md`. Tên trường tr�
 |---|---|---|---|
 | GET | `/api/customers?phone={phone}` | Tra cứu khách hàng theo số điện thoại, kèm danh sách thiết bị | US1 |
 | POST | `/api/customers` | Tạo khách hàng mới | US2 |
+| GET | `/api/customers/{id}` | Xem hồ sơ khách hàng kèm thiết bị | US1 |
+| PATCH | `/api/customers/{id}` | Sửa thông tin khách hàng (vẫn kiểm tra số trùng, QT-01) | US2 |
+| DELETE | `/api/customers/{id}` | Ngừng sử dụng hồ sơ khách (QT-13), trả 204 | US2 |
 | POST | `/api/customers/{id}/devices` | Ghi nhận thiết bị của khách hàng | US2 |
 | GET | `/api/issue-categories` | Lấy danh sách nhóm sự cố cho ô chọn | US4 |
 | POST | `/api/tickets/suggestion` | Đề xuất nhóm sự cố và mức ưu tiên từ mô tả lỗi | US4 |
