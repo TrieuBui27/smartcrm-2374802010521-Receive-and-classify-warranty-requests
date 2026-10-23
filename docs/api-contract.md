@@ -1,6 +1,6 @@
 # Hợp đồng API – Luồng L2: Tiếp nhận và phân loại yêu cầu bảo hành
 
-Thuật ngữ dùng đúng Bảng thuật ngữ ở `srs.md`. Tên trường trùng tên cột trong `erd.drawio` / `schema.sql`.
+Thuật ngữ dùng đúng Bảng thuật ngữ ở `srs.md`. Tên trường trùng tên cột trong `erd.drawio` và phần SQL DDL (Mục 4.2 báo cáo BT1).
 
 ## 1. Danh sách endpoint
 
@@ -9,12 +9,12 @@ Thuật ngữ dùng đúng Bảng thuật ngữ ở `srs.md`. Tên trường tr�
 | GET | `/api/customers?phone={phone}` | Tra cứu khách hàng theo số điện thoại, kèm danh sách thiết bị | US1 |
 | POST | `/api/customers` | Tạo khách hàng mới | US2 |
 | POST | `/api/customers/{id}/devices` | Ghi nhận thiết bị của khách hàng | US2 |
-| GET | `/api/issue-categories` | Lấy danh sách nhóm sự cố cho ô chọn | US5 |
-| POST | `/api/tickets/suggestion` | Đề xuất nhóm sự cố và mức ưu tiên từ mô tả lỗi | US5 |
-| POST | `/api/tickets` | Tạo phiếu bảo hành (kèm tình trạng bảo hành, nhóm sự cố, hạn cam kết) | US3, US4, US5, US6 |
-| GET | `/api/tickets?status=&center_id=&overdue=&page=&size=` | Danh sách phiếu, có lọc và phân trang | US7 |
-| GET | `/api/tickets/{id}` | Chi tiết phiếu kèm nhật ký trạng thái | US7, US8 |
-| PATCH | `/api/tickets/{id}/status` | Chuyển trạng thái phiếu | US8 |
+| GET | `/api/issue-categories` | Lấy danh sách nhóm sự cố cho ô chọn | US4 |
+| POST | `/api/tickets/suggestion` | Đề xuất nhóm sự cố và mức ưu tiên từ mô tả lỗi | US4 |
+| POST | `/api/tickets` | Tạo phiếu bảo hành (kèm tình trạng bảo hành, nhóm sự cố, hạn cam kết) | US3, US4, US5 |
+| GET | `/api/tickets?status=&center_id=&overdue=&page=&size=` | Danh sách phiếu, có lọc và phân trang | US6 |
+| GET | `/api/tickets/{id}` | Chi tiết phiếu kèm nhật ký trạng thái | US6, US7 |
+| PATCH | `/api/tickets/{id}/status` | Chuyển trạng thái phiếu | US7 |
 
 ## 2. Quy ước chung
 
@@ -26,7 +26,7 @@ Thuật ngữ dùng đúng Bảng thuật ngữ ở `srs.md`. Tên trường tr�
 - Số điện thoại nhập vào được chuẩn hóa về `0xxxxxxxxx` (QT-02). Response che dạng `090****567` với vai trò khác Quản lý trung tâm và Ban giám đốc (QT-15).
 - Mọi lỗi cùng cấu trúc: `{ "error": { "code": "...", "message": "...", "fields": {...} } }`.
 
-## 3. Chi tiết endpoint (US mức MUST: US1, US4, US6, US8)
+## 3. Chi tiết endpoint (US mức MUST: US1, US3, US5, US7)
 
 ### GET /api/customers?phone={phone} · US1
 
@@ -56,7 +56,7 @@ Request: `{ "device_name": "iPhone 13", "serial_no": "356123456789012", "purchas
 - **404** `CUSTOMER_NOT_FOUND`.
 - **409** `SERIAL_EXISTS` – serial/IMEI đã thuộc một khách hàng (QT-03).
 
-### POST /api/tickets · US3, US4, US5, US6
+### POST /api/tickets · US3, US4, US5
 
 Request:
 ```json
@@ -78,7 +78,7 @@ Request:
 - **404** `NOT_FOUND` – `customer_id` hoặc `device_id` không tồn tại.
 - **409** `DEVICE_HAS_OPEN_TICKET` – thiết bị đang có phiếu chưa đóng (QN-01); kèm `error.open_ticket_code`.
 
-### PATCH /api/tickets/{id}/status · US8
+### PATCH /api/tickets/{id}/status · US7
 
 Request: `{ "to_status": "DANG_XU_LY", "note": "Bắt đầu kiểm tra" }`
 
