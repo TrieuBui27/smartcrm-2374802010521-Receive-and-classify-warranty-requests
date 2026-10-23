@@ -9,8 +9,10 @@
 | Claude | Mục 4. Gợi ý sơ đồ ERD và trình bày phần SQL DDL, bảng chỉ mục. | Mục 4.1, 4.2 | Tôi đã kiểm chứng với từ điển dữ liệu của case study (mục 8) và tài liệu lý thuyết, tự học buổi 5; kiểm tra ERD đủ 6 bảng, mỗi bảng có khóa chính, không có bảng cô lập. Sửa các phần không đúng với yêu cầu. |
 | Claude | Mục 5. Gợi ý wireframe 3 màn hình cũng như đối chiếu các trường trên wireframe với mô hình dữ liệu. | Mục 5, 5.1 | Tôi đã kiểm chứng mọi trường hiển thị đều có trong ERD, nhãn đúng bảng thuật ngữ và mỗi màn hình nối về use case, theo tài liệu buổi 5. Sửa các phần không đúng với yêu cầu. |
 | Claude | Repo. Gợi ý README và đoạn mã kiểm tra môi trường (Hello Smart CRM, /db-check). | README.md; src/backend/index.js | Tôi đã đối chiếu với hướng dẫn ở Bài thực hành 1 (Phụ lục A.3) và checklist Buổi 2. Sửa các phần không đúng với yêu cầu. |
+| Claude | Buổi 8. Gợi ý mã module khách hàng: migration 6 bảng, script seed, các lớp routes / validators / services / repositories và 8 unit test. | migrations/; seeds/; src/backend/; tests/ | Tôi tự gõ và chạy từng bước trên máy: db:migrate và db:seed chạy 2 lần không lỗi, không nhân đôi; npm test 8/8 pass; gọi API bằng curl ra đúng 200/400/404. Đối chiếu migration với DDL Mục 4.2 BT1, mã lỗi với docs/api-contract.md; phát hiện customer_id trả về dạng chuỗi và sửa lại thành số cho khớp hợp đồng API. |
+| Claude | Buổi 8. Gợi ý nội dung TD-09 đến TD-11 và cập nhật README (môi trường, cấu trúc thư mục, cách chạy). | docs/thay-doi-thiet-ke.md; README.md | Tôi đã kiểm tra nguồn từng tệp seed với bộ dữ liệu gốc (customers_raw.csv, issue_categories.csv, service_centers.csv) và chạy lại đúng các lệnh trong README trên máy. Sửa các phần không đúng với yêu cầu. |
 | Không dùng | Tự lựa chọn luồng L2, số lượng User Story (7, sau khi gộp theo góp ý BT1) và việc bỏ vai trò kỹ thuật viên khỏi phạm vi L2. | Mục 1, phần 1, 2, 3 | Không áp dụng |
 
 **Tôi xác nhận đã đọc, hiểu và chịu trách nhiệm về toàn bộ nội dung nộp.**
 
-Họ tên: Bùi Quốc Triệu · MSSV: 2374802010521 · Ngày: [dd/mm/2026]
+Họ tên: Bùi Quốc Triệu · MSSV: 2374802010521 · Ngày: [24/10/2026]
