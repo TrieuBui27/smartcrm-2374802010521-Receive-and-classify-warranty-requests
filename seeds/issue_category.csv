@@ -1,0 +1,7 @@
+category_name,keywords,default_priority
+MAN_HINH,"man hinh,vo man,soc man,cam ung,khong hien thi,lien man",CAO
+PIN,"pin,hao pin,phong pin,sut pin,nong may",TRUNG_BINH
+SAC,"sac,khong vao sac,cong sac,cap sac,sac cham",TRUNG_BINH
+PHAN_MEM,"phan mem,treo logo,khoi dong lai,cap nhat,ung dung,dung may",THAP
+NUOC_VAO,"nuoc,vao nuoc,roi xuong nuoc,am,uot",CAO
+KHAC,,TRUNG_BINH
