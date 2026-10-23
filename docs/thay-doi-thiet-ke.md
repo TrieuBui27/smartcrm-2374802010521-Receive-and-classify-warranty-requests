@@ -53,3 +53,31 @@ Mỗi thay đổi có mã TD-xx để nhắc lại về sau. Mỗi điểm ghi b
 - **Quyết định:** SỬA (làm ở BT2)
 - **Lý do:** Bốn luồng này là chỗ dễ sai nhất: 6a và 8a dựa vào chỉ mục `ux_ticket_device_open` (QN-01), 3a và 4b là chuyển trạng thái sai và đồng thời. Có test trước thì Service viết ra phải thỏa đúng hành vi đã đặc tả.
 - **Ảnh hưởng:** `tests/`. Commit `test(ticket): ...` phải đứng trước `feat(ticket): ...` trong lịch sử. Buổi 8 chưa làm phiếu bảo hành, việc này làm ở buổi 9–10.
+
+
+## Thay đổi khi hiện thực module đầu tiên (buổi 8)
+
+Các sai lệch so với thiết kế BT1 phát sinh khi viết mã, mỗi thay đổi ba dòng theo đề BT2.
+
+### TD-09 Dùng thư viện `pg` và migration SQL thay cho Prisma
+- **Thay đổi:** README BT1 dự kiến Node.js + Prisma ORM. Buổi 8 dùng `pg` gọi SQL trực tiếp; 6 tệp `migrations/001…006_*.sql` chạy bằng `npm run db:migrate`, bảng `schema_migrations` ghi tệp đã chạy, mỗi lệnh có `IF NOT EXISTS`.
+- **Vì sao:** DDL BT1 Mục 4.2 đã viết bằng SQL PostgreSQL, có chỉ mục duy nhất từng phần `ux_ticket_device_open … WHERE …` cho QN-01 mà Prisma không biểu diễn trực tiếp. Giữ SQL thì migration giống hệt DDL đã nộp.
+- **Ảnh hưởng:** `migrations/`, `src/backend/db/migrate.js`, `src/backend/repositories/` (nơi duy nhất có SQL), README mục 4 và 5.
+
+### TD-10 Dữ liệu mẫu: khách hàng trích từ bộ dữ liệu, nhân viên tự tạo
+- **Thay đổi:** Thêm thư mục `seeds/` gồm 3 tệp, mỗi tệp đặt theo tên bảng mà nó nạp vào (`customer`, `issue_category`, `employee` trong ERD BT1). Nguồn từng tệp:
+
+  | Tệp seed | Lấy từ bộ dữ liệu (`dataset/`) | Phần tự thêm |
+  |---|---|---|
+  | `customer.csv` | 150 dòng đầu của `customers_raw.csv`, giữ nguyên họ tên, số điện thoại thô, email, địa chỉ | Bỏ cột `record_id`, `ngay_tao` (bảng `customer` tự sinh mã và thời điểm tạo) |
+  | `issue_category.csv` | 6 nhóm sự cố và mức ưu tiên mặc định của `issue_categories.csv` | Cột `keywords` (từ khóa không dấu cho FR5) |
+  | `employee.csv` | Mã trung tâm 1–6 của `service_centers.csv` | Toàn bộ 12 nhân viên: mỗi trung tâm 1 quản lý, 1 nhân viên tiếp nhận, tên giả lập |
+
+  Số điện thoại được chuẩn hóa lúc nạp bằng chính hàm QT-02 của service; dòng không chuẩn hóa được hoặc trùng số thì bỏ qua (150 dòng nạp được 139 khách).
+- **Vì sao:** Đổi tên tệp vì nội dung đã khác tệp gốc (ít dòng hơn, bớt hoặc thêm cột), giữ tên `customers_raw.csv` dễ bị hiểu là chép nguyên tệp 6 MB. Bộ dữ liệu không có cột từ khóa và không có nhân viên quầy tiếp nhận (chỉ có `technicians.csv`, thuộc L4). Lấy ít dòng khách để repo nhẹ nhưng vẫn đủ các dạng số "0760.833.592", "+84…", số rỗng để thấy QT-02 chạy.
+- **Ảnh hưởng:** `seeds/`, `src/backend/db/seed.js`. Tên nhân viên là tên giả lập, không phải nhân viên thật của Mekong Mobile.
+
+### TD-11 Thư mục `test/` đổi thành `tests/`; `migrations/` và `seeds/` đặt ở gốc repo
+- **Thay đổi:** Đổi tên `test/` thành `tests/`; thêm `migrations/` và `seeds/` ở gốc; mã backend vẫn nằm trong `src/backend/`, tách thành `routes/`, `validators/`, `services/`, `repositories/`, `db/`, `errors/`.
+- **Vì sao:** Đề BT2 quy định cấu trúc tối thiểu có `tests/`, `migrations/`, `seeds/`; giữ `src/backend` để khớp sơ đồ kiến trúc và README BT1 (TD-07).
+- **Ảnh hưởng:** README mục 4, `src/backend/package.json` (đường dẫn trong các lệnh `db:migrate`, `db:seed`, `test`).
