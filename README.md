@@ -54,20 +54,19 @@
 ```
 smartcrm-2374802010521-Receive-and-classify-warranty-requests/
 ├── docs/
-│   ├── srs.md                # bản SRS rút gọn (nguồn của file PDF)
+│   ├── srs.md                # bản SRS rút gọn (Mục 1–2 của báo cáo BT1)
 │   ├── usecase.drawio        # file gốc Use Case Diagram
 │   ├── architecture.drawio   # file gốc sơ đồ kiến trúc
 │   ├── erd.drawio            # file gốc ERD (6 bảng)
-│   ├── schema.sql            # SQL DDL skeleton
-│   ├── wireframe.png         # wireframe 3 màn hình
-│   ├── api-contract.md       # hợp đồng API (track SE)
+│   ├── api-contract.md       # hợp đồng API (track SE, tách khỏi báo cáo PDF)
 │   ├── ai-disclosure.md      # bảng khai báo sử dụng công cụ AI
-│   └── diagrams/             # ảnh PNG xuất từ các file .drawio
+│   └── diagrams/             # ảnh PNG xuất từ các file .drawio và wireframe 3 màn hình
 ├── src/
 │   ├── backend/              
 │   └── frontend/             
-├── tests/                    
+├── test/                     
 ├── .env.example
+├── BT1_2374802010521_BuiQuocTrieu.pdf   # báo cáo BT1
 ├── .gitignore
 └── README.md
 ```
@@ -121,6 +120,6 @@ Bản đầy đủ: [`docs/ai-disclosure.md`](docs/ai-disclosure.md).
 | Công cụ | Dùng vào việc gì | Cách tự kiểm chứng |
 |---|---|---|
 | Claude | Hỗ trợ soạn thảo tài liệu đặc tả (mô tả luồng, user story, use case) từ ý tưởng ban đầu | Đối chiếu lại từng use case với case study gốc và dữ liệu mẫu để đảm bảo đúng phạm vi, không bịa quy tắc nghiệp vụ |
-| Claude | Gợi ý cấu trúc bảng dữ liệu (ticket, customer, device, issue_category, ticket_status_log, employee) và ràng buộc khóa chính/khóa ngoại | Đối chiếu với từ điển dữ liệu của case study; chạy thử `docs/schema.sql` trên PostgreSQL cục bộ |
+| Claude | Gợi ý cấu trúc bảng dữ liệu (ticket, customer, device, issue_category, ticket_status_log, employee) và ràng buộc khóa chính/khóa ngoại | Đối chiếu với từ điển dữ liệu của case study; chạy thử phần SQL DDL (Mục 4.2 báo cáo BT1) trên PostgreSQL cục bộ |
 | Claude | Hỗ trợ viết tiêu chí chấp nhận và khung ca kiểm thử cho QT-04, QT-05, QT-06 (hạn cam kết, bảo hành, vòng đời trạng thái) | Tính lại thủ công các ví dụ về hạn cam kết, đối chiếu Bảng 9.1 và đọc lại từng tiêu chí trước khi commit |
 | Claude | Hỗ trợ vẽ sơ đồ (use case, kiến trúc, ERD), wireframe và hợp đồng API | Mở lại các file `.drawio` để chỉnh; kiểm tra thuật ngữ nhất quán giữa SRS và sơ đồ bằng Ctrl+F |
