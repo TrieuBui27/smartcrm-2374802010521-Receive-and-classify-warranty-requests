@@ -8,9 +8,15 @@ const { createAuthService } = require('./services/auth.service');
 const { createAuthenticate } = require('./middleware/authenticate');
 const { authRoutes } = require('./routes/auth.routes');
 const { customerRoutes } = require('./routes/customer.routes');
+const ticketRepo = require('./repositories/ticket.repository');
+const { createTicketService } = require('./services/ticket.service');
+const { ticketRoutes } = require('./routes/ticket.routes');
 const { errorHandler } = require('./routes/error-handler');
+const { requireRole } = require('./middleware/require-role');
+const { cors } = require('./middleware/cors');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => res.send('Hello Smart CRM'));
@@ -28,7 +34,9 @@ app.get('/db-check', async (req, res) => {
 const authService = createAuthService(authRepo, { secret: process.env.SECRET_KEY });
 const authenticate = createAuthenticate(authService);
 app.use('/api/auth', authRoutes(authService, authenticate));
-app.use('/api/customers', customerRoutes(createCustomerService(customerRepo)));
+// Hợp đồng API mục 6: tra cứu và tạo khách hàng chỉ dành cho Nhân viên tiếp nhận.
+app.use('/api/customers', authenticate, requireRole('NHAN_VIEN_TIEP_NHAN'), customerRoutes(createCustomerService(customerRepo)));
+app.use('/api/tickets', ticketRoutes(createTicketService(ticketRepo), authenticate));
 app.use(errorHandler);
 
 const port = process.env.APP_PORT || 3000;
