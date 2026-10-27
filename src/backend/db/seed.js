@@ -51,12 +51,79 @@ async function seedCustomer() {
   return { added, skipped };
 }
 
+// Tìm khách theo số điện thoại thô của seeds/customer.csv, chuẩn hóa bằng cùng hàm QT-02 lúc nạp customer.
+async function customerIdByRawPhone(raw) {
+  const phone = normalizePhone(raw);
+  if (!phone) return null;
+  const { rows } = await pool.query('SELECT customer_id FROM customer WHERE phone = $1', [phone]);
+  return rows[0] ? rows[0].customer_id : null;
+}
+
+async function employeeIdOfCenter(centerId, role) {
+  const { rows } = await pool.query('SELECT employee_id FROM employee WHERE center_id = $1 AND role = $2 ORDER BY employee_id LIMIT 1', [centerId, role]);
+  return rows[0].employee_id;
+}
+
+async function seedDevice() {
+  let added = 0, skipped = 0;
+  for (const r of read('device.csv')) {
+    const customerId = await customerIdByRawPhone(r.so_dien_thoai);
+    if (!customerId) { skipped++; continue; }
+    const res = await pool.query(
+      `INSERT INTO device (customer_id, device_name, serial_no, purchase_date, warranty_months)
+       VALUES ($1, $2, $3, $4, $5) ON CONFLICT (serial_no) DO NOTHING`,
+      [customerId, r.device_name, r.serial_no, orNull(r.purchase_date), r.warranty_months]);
+    added += res.rowCount;
+  }
+  return { added, skipped };
+}
+
+async function seedTicket() {
+  // Giữ nguyên ticket_id và ticket_code của bộ dữ liệu; thời điểm là giờ Việt Nam, khớp quy ước ở db/pool.js.
+  let added = 0;
+  for (const r of read('ticket.csv')) {
+    const { rows: [device] } = await pool.query('SELECT device_id, customer_id FROM device WHERE serial_no = $1', [r.serial_no]);
+    const receivedBy = await employeeIdOfCenter(r.center_id, 'NHAN_VIEN_TIEP_NHAN');
+    const res = await pool.query(
+      `INSERT INTO ticket (ticket_id, ticket_code, customer_id, device_id, center_id, issue_desc, category_id, priority,
+                           status, received_by, received_at, due_date, closed_at, is_warranty, is_overdue)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, COALESCE($13::timestamp, now()) > $12::timestamp)
+       ON CONFLICT (ticket_id) DO NOTHING`,
+      [r.ticket_id, r.ticket_code, device.customer_id, device.device_id, r.center_id, r.issue_desc, r.category_id,
+       r.priority, r.status, receivedBy, r.received_at, r.due_date, orNull(r.closed_at), r.is_warranty === 'true']);
+    added += res.rowCount;
+  }
+  // Đã nạp ticket_id có sẵn nên phải đẩy sequence lên, tránh trùng khóa khi tạo phiếu mới.
+  await pool.query(`SELECT setval(pg_get_serial_sequence('ticket','ticket_id'), (SELECT COALESCE(MAX(ticket_id), 1) FROM ticket))`);
+  return { added };
+}
+
+async function seedTicketStatusLog() {
+  // changed_by của bộ dữ liệu là kỹ thuật viên (luồng L4). Ở L2 người đổi trạng thái là nhân viên tiếp nhận
+  // (dòng đầu tiên) hoặc Quản lý trung tâm cập nhật thay kỹ thuật viên (A4).
+  let added = 0;
+  for (const r of read('ticket_status_log.csv')) {
+    const { rows: [t] } = await pool.query('SELECT center_id FROM ticket WHERE ticket_id = $1', [r.ticket_id]);
+    if (!t) continue;
+    const by = await employeeIdOfCenter(t.center_id, r.from_status ? 'QUAN_LY_TRUNG_TAM' : 'NHAN_VIEN_TIEP_NHAN');
+    const res = await pool.query(
+      `INSERT INTO ticket_status_log (ticket_id, from_status, to_status, changed_at, changed_by)
+       SELECT $1::bigint, $2::varchar, $3::varchar, $4::timestamp, $5::bigint
+        WHERE NOT EXISTS (SELECT 1 FROM ticket_status_log
+                           WHERE ticket_id = $1::bigint AND to_status = $3::varchar AND changed_at = $4::timestamp)`,
+      [r.ticket_id, orNull(r.from_status), r.to_status, r.changed_at, by]);
+    added += res.rowCount;
+  }
+  return { added };
+}
+
 async function main() {
-  for (const [name, fn] of [['issue_category', seedIssueCategory], ['employee', seedEmployee], ['customer', seedCustomer]]) {
+  for (const [name, fn] of [['issue_category', seedIssueCategory], ['employee', seedEmployee], ['customer', seedCustomer],
+    ['device', seedDevice], ['ticket', seedTicket], ['ticket_status_log', seedTicketStatusLog]]) {
     const r = await fn();
     const { rows } = await pool.query(`SELECT COUNT(*)::int AS n FROM ${name}`);
-    const extra = r.skipped !== undefined ? `, bỏ qua ${r.skipped} dòng số điện thoại không hợp lệ` : '';
-    console.log(`${name.padEnd(15)} thêm mới ${r.added}${extra}; tổng ${rows[0].n} dòng`);
+    const extra = r.skipped !== undefined ? `, bỏ qua ${r.skipped} dòng (số điện thoại không hợp lệ hoặc không nối được với khách)` : '';
+    console.log(`${name.padEnd(18)} thêm mới ${r.added}${extra}; tổng ${rows[0].n} dòng`);
   }
 }
 
