@@ -104,6 +104,51 @@ async function updateStatusIfCurrent(id, from, to, changedBy, note) {
   }
 }
 
+// Phiếu nối khách, thiết bị, nhóm sự cố: đúng các trường mà toTicketView (ticket.contract.js) cần.
+// LEFT JOIN để phiếu vẫn hiện khi hồ sơ khách hoặc thiết bị không đọc được ("(không rõ)").
+const VIEW_SELECT = `SELECT t.ticket_id, t.ticket_code, t.status, t.priority, ic.category_name, t.issue_desc, t.accessories,
+       c.full_name AS customer_name, c.phone AS customer_phone, d.device_name, d.serial_no, t.center_id,
+       t.received_at, t.due_date, t.closed_at, t.is_warranty, t.warranty_verified
+  FROM ticket t
+  LEFT JOIN customer c ON c.customer_id = t.customer_id
+  LEFT JOIN device d ON d.device_id = t.device_id
+  LEFT JOIN issue_category ic ON ic.category_id = t.category_id`;
+const NOT_DONE = "t.status NOT IN ('HOAN_TAT','DA_DONG','DA_HUY')";
+
+/**
+ * Danh sách phiếu của một trung tâm, lọc theo trạng thái và quá hạn, phân trang, sắp theo hạn cam kết tăng dần.
+ * "Quá hạn" tính lúc đọc: chưa hoàn tất và due_date đã qua now() (giờ Việt Nam, xem db/pool.js).
+ * @returns {Promise} { rows, total }; total là tổng số phiếu khớp bộ lọc, không phụ thuộc phân trang.
+ */
+async function list({ center_id, status, overdue, page, size }) {
+  const where = ['t.is_active', 't.center_id = $1'];
+  const params = [center_id];
+  if (status) { params.push(status); where.push(`t.status = $${params.length}`); }
+  if (overdue === true) where.push(`${NOT_DONE} AND t.due_date < now()`);
+  if (overdue === false) where.push(`NOT (${NOT_DONE} AND t.due_date < now())`);
+  const cond = where.join(' AND ');
+  const { rows: [{ n }] } = await pool.query(`SELECT COUNT(*)::int AS n FROM ticket t WHERE ${cond}`, params);
+  const { rows } = await pool.query(
+    `${VIEW_SELECT} WHERE ${cond} ORDER BY t.due_date ASC, t.ticket_id ASC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+    [...params, size, (page - 1) * size]);
+  return { rows, total: n };
+}
+
+async function findViewById(id) {
+  const { rows } = await pool.query(`${VIEW_SELECT} WHERE t.ticket_id = $1 AND t.is_active`, [id]);
+  return rows[0] || null;
+}
+
+async function findLog(ticketId) {
+  const { rows } = await pool.query(
+    `SELECT l.from_status, l.to_status, l.changed_at, e.full_name AS changed_by_name, l.note
+       FROM ticket_status_log l LEFT JOIN employee e ON e.employee_id = l.changed_by
+      WHERE l.ticket_id = $1 ORDER BY l.changed_at ASC, l.log_id ASC`, [ticketId]);
+  return rows;
+}
+
 module.exports = {
   findDeviceById, findOpenTicketByDevice, findActiveCategories, createWithLog, findById, updateStatusIfCurrent,
+  list, findViewById, findLog,
 };

@@ -1,6 +1,7 @@
-// Lớp nghiệp vụ của phiếu bảo hành (UC3, UC7): QT-04, QT-05, QT-06, QT-14, QN-01. Không biết gì về HTTP.
+//Lớp nghiệp vụ của phiếu bảo hành (UC3, UC7): QT-04, QT-05, QT-06, QT-14, QN-01. Không biết gì về HTTP.
 const AppError = require('../errors/AppError');
 const rules = require('./ticket.rules');
+const { toTicketView, toIsoVn } = require('./ticket.contract');
 
 /**
  * Tạo TicketService gắn với một repository (thật hoặc giả trong kiểm thử).
@@ -96,7 +97,44 @@ function createTicketService(repo, { now = () => new Date() } = {}) {
     return result;
   }
 
-  return { create, changeStatus };
+  /**
+   * Danh sách phiếu của trung tâm người xem (QT-14), sắp theo hạn cam kết tăng dần.
+   * @param {{page:number, size:number, status?:string, overdue?:boolean, center_id?:number}} query Đã qua validator.
+   * @param {{role:string, center_id:number}} user Người xem.
+   * @returns {Promise} { items, page, size, total }; mỗi item đúng hợp đồng ticket.contract.js.
+   * @throws {AppError} FORBIDDEN khi xin xem trung tâm khác.
+   */
+  async function list(query, user) {
+    if (query.center_id !== undefined && Number(query.center_id) !== Number(user.center_id)) {
+      throw new AppError('FORBIDDEN', 'Không được xem phiếu của trung tâm khác');
+    }
+    const { rows, total } = await repo.list({
+      center_id: user.center_id, status: query.status, overdue: query.overdue, page: query.page, size: query.size,
+    });
+    const at = now();
+    return { items: rows.map(r => toTicketView(r, user, at)), page: query.page, size: query.size, total };
+  }
+
+  /**
+   * Chi tiết một phiếu kèm nhật ký trạng thái theo thứ tự thời gian.
+   * @returns {Promise} Phiếu đúng hợp đồng cộng status_log.
+   * @throws {AppError} NOT_FOUND; FORBIDDEN khi phiếu thuộc trung tâm khác (QT-14).
+   */
+  async function getView(id, user) {
+    const row = await repo.findViewById(id);
+    if (!row) throw new AppError('NOT_FOUND', 'Không tìm thấy phiếu bảo hành');
+    if (Number(row.center_id) !== Number(user.center_id)) throw new AppError('FORBIDDEN', 'Phiếu thuộc trung tâm khác');
+    const log = await repo.findLog(row.ticket_id);
+    return {
+      ...toTicketView(row, user, now()),
+      status_log: log.map(l => ({
+        from_status: l.from_status ?? null, to_status: l.to_status, changed_at: toIsoVn(l.changed_at),
+        changed_by_name: l.changed_by_name ?? null, note: l.note ?? null,
+      })),
+    };
+  }
+
+  return { create, changeStatus, list, getView };
 }
 
 module.exports = { createTicketService };
