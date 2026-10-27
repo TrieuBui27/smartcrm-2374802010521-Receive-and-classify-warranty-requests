@@ -3,8 +3,9 @@ const express = require('express');
 const AppError = require('../errors/AppError');
 const { validateCreate, validateUpdate } = require('../validators/customer.validator');
 
-const HTTP = { INVALID_PHONE: 400, VALIDATION_FAILED: 400, CUSTOMER_NOT_FOUND: 404, PHONE_EXISTS: 409 };
-
+const HTTP = { INVALID_PHONE: 400, VALIDATION_FAILED: 400, CUSTOMER_NOT_FOUND: 404, PHONE_EXISTS: 409,
+  INVALID_CREDENTIALS: 401, UNAUTHORIZED: 401 };
+  
 function customerRoutes(service) {
   const router = express.Router();
 

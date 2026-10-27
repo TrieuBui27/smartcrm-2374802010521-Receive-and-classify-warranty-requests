@@ -3,6 +3,10 @@ const express = require('express');
 const pool = require('./db/pool');
 const customerRepo = require('./repositories/customer.repository');
 const { createCustomerService } = require('./services/customer.service');
+const authRepo = require('./repositories/auth.repository');
+const { createAuthService } = require('./services/auth.service');
+const { createAuthenticate } = require('./middleware/authenticate');
+const { authRoutes } = require('./routes/auth.routes');
 const { customerRoutes, errorHandler } = require('./routes/customer.routes');
 
 const app = express();
@@ -20,6 +24,9 @@ app.get('/db-check', async (req, res) => {
   }
 });
 
+const authService = createAuthService(authRepo, { secret: process.env.SECRET_KEY });
+const authenticate = createAuthenticate(authService);
+app.use('/api/auth', authRoutes(authService, authenticate));
 app.use('/api/customers', customerRoutes(createCustomerService(customerRepo)));
 app.use(errorHandler);
 
