@@ -1,0 +1,26 @@
+ticket_id,ticket_code,serial_no,center_id,issue_desc,category_id,priority,status,received_at,due_date,closed_at,is_warranty
+101,BH-000101/2025,SN281481716773,5,may bi pin chai chỉ còn dùng được nửa ngày,2,TRUNG_BINH,DA_DONG,2025-09-25 12:00,2025-09-28 12:00,2025-09-27 16:47,true
+146,BH-000146/2025,SN116101970030,2,điện thoại dính nước mưa loa bị rè,5,CAO,DA_DONG,2025-12-30 10:45,2025-12-31 10:45,2025-12-30 22:57,true
+231,BH-000231/2025,SN290576547180,6,may bi màn hình bị sọc dọc bị từ tuần trước,1,CAO,DANG_XU_LY,2025-07-22 16:30,2025-07-23 16:30,,true
+252,BH-000252/2024,SN600819849002,1,may bi quên mật khẩu không mở được máy mới bị 2 ngày nay,4,THAP,DA_DONG,2024-09-28 11:15,2024-10-03 11:15,2024-09-30 20:11,true
+422,BH-000422/2025,SN542081373306,4,khách báo pin sụt 20% chỉ sau vài phút bị từ tuần trước,2,TRUNG_BINH,DA_DONG,2025-11-04 11:00,2025-11-07 11:00,2025-11-06 06:55,false
+544,BH-000544/2026,SN424007730932,6,máy không giữ được pin qua đêm mới bị 2 ngày nay,2,TRUNG_BINH,DA_DONG,2026-04-10 15:00,2026-04-13 15:00,2026-04-11 13:25,true
+994,BH-000994/2026,SN961284018763,3,tinh trang: may treo logo khong vao duoc he dieu hanh may con bao hanh,4,THAP,DA_DONG,2026-07-25 17:45,2026-07-30 17:45,2026-07-27 19:11,false
+1027,BH-001027/2026,SN556937606893,2,tình trạng: pin tụt rất nhanh dùng 2 tiếng đã hết đã thử khởi động lại không được,2,TRUNG_BINH,DA_DONG,2026-02-10 17:00,2026-02-13 17:00,2026-02-12 23:57,false
+1112,BH-001112/2025,SN521727394937,4,khach bao man hinh xuat hien vet muc loang moi bi 2 ngay nay,1,CAO,DA_DONG,2025-07-31 10:30,2025-08-01 10:30,2025-07-31 23:38,true
+1228,BH-001228/2024,SN698176762834,5,khach bao cam ung loan khong bam duoc bi tu tuan truoc,1,CAO,DA_DONG,2024-12-26 08:00,2024-12-27 08:00,2024-12-27 03:53,false
+1518,BH-001518/2024,SN538064849650,2,màn hình xuất hiện vệt mực loang mới bị 2 ngày nay,1,CAO,DA_DONG,2024-10-02 15:45,2024-10-03 15:45,2024-10-02 21:45,true
+1593,BH-001593/2024,SN125918925045,1,kh nói màn hình nứt sau khi rơi đã thử khởi động lại không được,1,CAO,DA_DONG,2024-09-27 15:30,2024-09-28 15:30,2024-09-28 06:09,true
+2615,BH-002615/2024,SN963710278810,6,khách báo rơi bồn rửa máy chập chờn mới bị 2 ngày nay,5,CAO,DA_DONG,2024-10-17 10:15,2024-10-18 10:15,2024-10-17 20:14,true
+2637,BH-002637/2025,SN163271524069,3,khách hàng phản ánh màn hình xuất hiện vệt mực loang bị từ tuần trước,1,CAO,DA_DONG,2025-11-04 09:15,2025-11-05 09:15,2025-11-04 15:27,false
+3084,BH-003084/2025,SN933285819767,2,may khong giu duoc pin qua dem,2,TRUNG_BINH,DA_DONG,2025-03-22 13:15,2025-03-25 13:15,2025-03-24 01:45,true
+3499,BH-003499/2026,SN595981637547,4,may bi cắm sạc không vào điện máy còn bảo hành,3,TRUNG_BINH,DA_DONG,2026-06-05 08:15,2026-06-08 08:15,2026-06-08 01:34,true
+3553,BH-003553/2026,SN140185594850,1,khách báo màn hình bị ám vàng một góc khách chưa từng sửa ở đâu,1,CAO,DA_DONG,2026-03-08 17:15,2026-03-09 17:15,2026-03-09 07:15,true
+4624,BH-004624/2025,SN892945423448,5,tình trạng: màn hình bị ám vàng một góc máy còn bảo hành,1,CAO,DA_DONG,2025-07-11 17:30,2025-07-12 17:30,2025-07-12 11:49,true
+5025,BH-005025/2024,SN386348644011,4,may bi máy tự tắt khi còn 30% pin bị từ tuần trước,2,THAP,DA_PHAN_CONG,2024-12-11 14:30,2024-12-16 14:30,,false
+5263,BH-005263/2025,SN200701541747,4,khách hàng phản ánh cắm sạc máy nóng bất thường đã thử khởi động lại không được,3,TRUNG_BINH,DANG_XU_LY,2025-10-12 13:45,2025-10-15 13:45,,true
+5751,BH-005751/2026,SN710083396001,1,khách báo rơi bồn rửa máy chập chờn đã thử khởi động lại không được,5,CAO,DA_DONG,2026-03-03 14:15,2026-03-04 14:15,2026-03-04 06:36,false
+7256,BH-007256/2024,SN773697098918,6,khách báo màn hình xuất hiện vệt mực loang khách chưa từng sửa ở đâu,1,CAO,DA_DONG,2024-12-21 17:30,2024-12-22 17:30,2024-12-22 07:14,true
+7448,BH-007448/2025,SN415730340568,1,tình trạng: cắm sạc không vào điện xảy ra sau khi rơi,3,TRUNG_BINH,DA_DONG,2025-10-26 16:30,2025-10-29 16:30,2025-10-27 15:48,true
+7758,BH-007758/2025,SN668898772575,5,dính nước biển máy nóng và tắt bị từ tuần trước,5,CAO,DA_PHAN_CONG,2025-07-05 14:00,2025-07-06 14:00,,false
+7771,BH-007771/2025,SN668171812322,3,may tu khoi dong lai nhieu lan trong ngay moi bi 2 ngay nay,4,THAP,DA_DONG,2025-02-21 16:00,2025-02-26 16:00,2025-02-25 07:22,true
