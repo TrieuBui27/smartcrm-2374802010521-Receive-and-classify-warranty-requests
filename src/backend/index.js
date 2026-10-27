@@ -10,7 +10,7 @@ const { authRoutes } = require('./routes/auth.routes');
 const { customerRoutes } = require('./routes/customer.routes');
 const ticketRepo = require('./repositories/ticket.repository');
 const { createTicketService } = require('./services/ticket.service');
-const { ticketRoutes } = require('./routes/ticket.routes');
+const { ticketRoutes, issueCategoryRoutes } = require('./routes/ticket.routes');
 const { errorHandler } = require('./routes/error-handler');
 const { requireRole } = require('./middleware/require-role');
 const { cors } = require('./middleware/cors');
@@ -36,7 +36,9 @@ const authenticate = createAuthenticate(authService);
 app.use('/api/auth', authRoutes(authService, authenticate));
 // Hợp đồng API mục 6: tra cứu và tạo khách hàng chỉ dành cho Nhân viên tiếp nhận.
 app.use('/api/customers', authenticate, requireRole('NHAN_VIEN_TIEP_NHAN'), customerRoutes(createCustomerService(customerRepo)));
-app.use('/api/tickets', ticketRoutes(createTicketService(ticketRepo), authenticate));
+const ticketService = createTicketService(ticketRepo);
+app.use('/api/issue-categories', issueCategoryRoutes(ticketService, authenticate));
+app.use('/api/tickets', ticketRoutes(ticketService, authenticate));
 app.use(errorHandler);
 
 const port = process.env.APP_PORT || 3000;
