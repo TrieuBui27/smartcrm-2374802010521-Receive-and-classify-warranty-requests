@@ -1,13 +1,13 @@
-employee_id,full_name,role,center_id
-1,Quản lý TT01,QUAN_LY_TRUNG_TAM,1
-2,Nhân viên tiếp nhận TT01,NHAN_VIEN_TIEP_NHAN,1
-3,Quản lý TT02,QUAN_LY_TRUNG_TAM,2
-4,Nhân viên tiếp nhận TT02,NHAN_VIEN_TIEP_NHAN,2
-5,Quản lý TT03,QUAN_LY_TRUNG_TAM,3
-6,Nhân viên tiếp nhận TT03,NHAN_VIEN_TIEP_NHAN,3
-7,Quản lý TT04,QUAN_LY_TRUNG_TAM,4
-8,Nhân viên tiếp nhận TT04,NHAN_VIEN_TIEP_NHAN,4
-9,Quản lý TT05,QUAN_LY_TRUNG_TAM,5
-10,Nhân viên tiếp nhận TT05,NHAN_VIEN_TIEP_NHAN,5
-11,Quản lý TT06,QUAN_LY_TRUNG_TAM,6
-12,Nhân viên tiếp nhận TT06,NHAN_VIEN_TIEP_NHAN,6
+employee_id,username,full_name,role,center_id
+1,ql_tt01,Quản lý TT01,QUAN_LY_TRUNG_TAM,1
+2,nv_tt01,Nhân viên tiếp nhận TT01,NHAN_VIEN_TIEP_NHAN,1
+3,ql_tt02,Quản lý TT02,QUAN_LY_TRUNG_TAM,2
+4,nv_tt02,Nhân viên tiếp nhận TT02,NHAN_VIEN_TIEP_NHAN,2
+5,ql_tt03,Quản lý TT03,QUAN_LY_TRUNG_TAM,3
+6,nv_tt03,Nhân viên tiếp nhận TT03,NHAN_VIEN_TIEP_NHAN,3
+7,ql_tt04,Quản lý TT04,QUAN_LY_TRUNG_TAM,4
+8,nv_tt04,Nhân viên tiếp nhận TT04,NHAN_VIEN_TIEP_NHAN,4
+9,ql_tt05,Quản lý TT05,QUAN_LY_TRUNG_TAM,5
+10,nv_tt05,Nhân viên tiếp nhận TT05,NHAN_VIEN_TIEP_NHAN,5
+11,ql_tt06,Quản lý TT06,QUAN_LY_TRUNG_TAM,6
+12,nv_tt06,Nhân viên tiếp nhận TT06,NHAN_VIEN_TIEP_NHAN,6

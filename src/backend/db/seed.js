@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { parse } = require('csv-parse/sync');
+const bcrypt = require('bcryptjs');
 const pool = require('./pool');
 const { normalizePhone } = require('../services/phone');
 
@@ -22,12 +23,18 @@ async function seedIssueCategory() {
 }
 
 async function seedEmployee() {
+  // Mọi tài khoản mẫu dùng chung một mật khẩu thử nghiệm (đổi bằng biến SEED_PASSWORD); chỉ lưu bản băm bcrypt.
+  const password = process.env.SEED_PASSWORD || 'Mekong@2026';
   let added = 0;
   for (const r of read('employee.csv')) {
+    // Nhân viên đã có từ buổi 8 thì chỉ bổ sung tên đăng nhập và mật khẩu khi chưa có; chạy lại không đổi gì.
     const res = await pool.query(
-      `INSERT INTO employee (employee_id, full_name, role, center_id)
-       VALUES ($1, $2, $3, $4) ON CONFLICT (employee_id) DO NOTHING`,
-      [r.employee_id, r.full_name, r.role, r.center_id]);
+      `INSERT INTO employee (employee_id, username, password_hash, full_name, role, center_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (employee_id) DO UPDATE
+         SET username = EXCLUDED.username, password_hash = EXCLUDED.password_hash
+         WHERE employee.password_hash IS NULL`,
+      [r.employee_id, r.username, await bcrypt.hash(password, 10), r.full_name, r.role, r.center_id]);
     added += res.rowCount;
   }
   // Dữ liệu có sẵn mã nên phải đẩy sequence lên, tránh trùng khóa khi thêm nhân viên mới.
