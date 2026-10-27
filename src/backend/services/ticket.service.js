@@ -134,7 +134,22 @@ function createTicketService(repo, { now = () => new Date() } = {}) {
     };
   }
 
-  return { create, changeStatus, list, getView };
+    /**
+   * Đề xuất nhóm sự cố và mức ưu tiên từ mô tả lỗi (FR5, UC3 bước 6). Nhân viên được sửa đề xuất ở bước 7.
+   * @returns {Promise} { category_id, category_name, priority }.
+   */
+  async function suggest(issueDesc) {
+    return rules.suggestCategory(issueDesc, await repo.findActiveCategories());
+  }
+
+  /** Danh sách nhóm sự cố đang dùng cho ô chọn. Không trả từ khóa vì đó là chi tiết nội bộ của luật đề xuất. */
+  async function categories() {
+    return (await repo.findActiveCategories()).map(c => ({
+      category_id: c.category_id, category_name: c.category_name, default_priority: c.default_priority,
+    }));
+  }
+
+  return { create, changeStatus, list, getView, suggest, categories };
 }
 
 module.exports = { createTicketService };
