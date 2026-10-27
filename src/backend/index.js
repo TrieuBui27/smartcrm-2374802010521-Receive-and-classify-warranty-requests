@@ -7,7 +7,8 @@ const authRepo = require('./repositories/auth.repository');
 const { createAuthService } = require('./services/auth.service');
 const { createAuthenticate } = require('./middleware/authenticate');
 const { authRoutes } = require('./routes/auth.routes');
-const { customerRoutes, errorHandler } = require('./routes/customer.routes');
+const { customerRoutes } = require('./routes/customer.routes');
+const { errorHandler } = require('./routes/error-handler');
 
 const app = express();
 app.use(express.json());

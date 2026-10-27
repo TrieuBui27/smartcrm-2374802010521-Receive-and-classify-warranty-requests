@@ -1,11 +1,8 @@
-// Lớp API: nhận/trả JSON, gọi validator và service, đổi mã lỗi nghiệp vụ sang mã HTTP.
+// Lớp API khách hàng: nhận/trả JSON, gọi validator và service; lỗi chuyển cho errorHandler chung (error-handler.js).
 const express = require('express');
 const AppError = require('../errors/AppError');
 const { validateCreate, validateUpdate } = require('../validators/customer.validator');
 
-const HTTP = { INVALID_PHONE: 400, VALIDATION_FAILED: 400, CUSTOMER_NOT_FOUND: 404, PHONE_EXISTS: 409,
-  INVALID_CREDENTIALS: 401, UNAUTHORIZED: 401 };
-  
 function customerRoutes(service) {
   const router = express.Router();
 
@@ -51,16 +48,4 @@ function customerRoutes(service) {
   return router;
 }
 
-// Bộ xử lý lỗi chung: định dạng { error: { code, message, ... } } theo hợp đồng API.
-function errorHandler(err, req, res, next) {
-  if (err instanceof AppError) {
-    return res.status(HTTP[err.code] || 400).json({ error: { code: err.code, message: err.message, ...err.details } });
-  }
-  if (err.type === 'entity.parse.failed') {
-    return res.status(400).json({ error: { code: 'VALIDATION_FAILED', message: 'Body không phải JSON hợp lệ' } });
-  }
-  console.error(err);
-  res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Lỗi hệ thống, vui lòng thử lại' } });
-}
-
-module.exports = { customerRoutes, errorHandler };
+module.exports = { customerRoutes };
