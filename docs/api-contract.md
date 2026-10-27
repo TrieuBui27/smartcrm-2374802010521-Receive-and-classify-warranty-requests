@@ -18,7 +18,10 @@ Thuật ngữ dùng đúng Bảng thuật ngữ ở `srs.md`. Tên trường tr�
 | GET | `/api/tickets?status=&center_id=&overdue=&page=&size=` | Danh sách phiếu, có lọc và phân trang | US6 |
 | GET | `/api/tickets/{id}` | Chi tiết phiếu kèm nhật ký trạng thái | US6, US7 |
 | PATCH | `/api/tickets/{id}/status` | Chuyển trạng thái phiếu | US7 |
+| POST | `/api/auth/login` | Đăng nhập, nhận `access_token` | A1 |
+| GET | `/api/auth/me` | Lấy người dùng của token hiện tại | A1 |
 
+> Ghi chú tiến độ buổi 9–10: đã làm mọi endpoint trên **trừ** `POST /api/customers/{id}/devices` (ghi nhận thiết bị mới, UC2). Thiết bị lấy từ dữ liệu mẫu nên luồng tiếp nhận vẫn chạy được; endpoint này ghi vào nhật ký thay đổi thiết kế.
 ## 2. Quy ước chung
 
 - JSON, UTF-8, header `Content-Type: application/json`.
@@ -28,6 +31,8 @@ Thuật ngữ dùng đúng Bảng thuật ngữ ở `srs.md`. Tên trường tr�
 - Phân trang: `page` (từ 1), `size` (mặc định 20, tối đa 100); response kèm `total`.
 - Số điện thoại nhập vào được chuẩn hóa về `0xxxxxxxxx` (QT-02). Response che dạng `090****567` với vai trò khác Quản lý trung tâm và Ban giám đốc (QT-15).
 - Mọi lỗi cùng cấu trúc: `{ "error": { "code": "...", "message": "...", "fields": {...} } }`.
+- Mọi endpoint trừ `/api/auth/login` cần header `Authorization: Bearer ...` (token lấy từ đăng nhập); thiếu, sai chữ ký hoặc hết hạn thì **401** `UNAUTHORIZED`. Giao diện xóa token và quay về trang đăng nhập khi nhận 401.
+- Mã lỗi nghiệp vụ → HTTP: `VALIDATION_FAILED`, `INVALID_PHONE` 400; `INVALID_CREDENTIALS`, `UNAUTHORIZED` 401; `FORBIDDEN` 403; `NOT_FOUND`, `CUSTOMER_NOT_FOUND` 404; `PHONE_EXISTS`, `DEVICE_HAS_OPEN_TICKET` 409; `INVALID_TRANSITION` 422.
 
 ## 3. Chi tiết endpoint (US mức MUST: US1, US3, US5, US7)
 
@@ -59,6 +64,44 @@ Request: `{ "device_name": "iPhone 13", "serial_no": "356123456789012", "purchas
 - **404** `CUSTOMER_NOT_FOUND`.
 - **409** `SERIAL_EXISTS` – serial/IMEI đã thuộc một khách hàng (QT-03).
 
+### POST /api/auth/login · A1
+
+Request: `{ "username": "nv_tt01", "password": "..." }`
+
+- **200 OK**
+```json
+{ "access_token": "eyJ...", "token_type": "Bearer", "expires_in": 28800,
+  "user": { "employee_id": 2, "full_name": "Nhân viên tiếp nhận TT01", "role": "NHAN_VIEN_TIEP_NHAN", "center_id": 1 } }
+```
+Token HS256 sống 8 giờ, chứa `user_id` (employee_id), `role`, `center_id`.
+- **400** `VALIDATION_FAILED` – thiếu `username` hoặc `password` (kèm `fields`).
+- **401** `INVALID_CREDENTIALS` – sai tên đăng nhập, sai mật khẩu hoặc tài khoản bị khóa; cả ba dùng cùng một thông báo để không lộ tên có tồn tại.
+
+`GET /api/auth/me` (cần token) trả `{ "employee_id": 2, "role": "NHAN_VIEN_TIEP_NHAN", "center_id": 1 }`; giao diện dùng để khôi phục phiên sau khi tải lại trang.
+
+### GET /api/tickets?status=&center_id=&overdue=&page=&size= · US6
+
+Chỉ trả phiếu của trung tâm trong token (QT-14). Sắp theo `due_date` tăng dần. `size` mặc định 20, tối đa 100; `overdue=true` là phiếu chưa hoàn tất mà đã quá hạn.
+
+- **200 OK** – `{ "items": [ ...phiếu ], "page": 1, "size": 20, "total": 4 }`. Mỗi phiếu có 18 trường của hợp đồng dữ liệu (`ticket.contract.js`): `ticket_id`, `ticket_code`, `status`, `priority`, `category_name`, `issue_desc`, `accessories`, `customer_name`, `customer_phone`, `device_name`, `serial_no`, `center_id`, `received_at`, `due_date`, `closed_at`, `is_warranty`, `warranty_verified`, `is_overdue`. `customer_phone` che dạng `090****567` với Nhân viên tiếp nhận.
+- **400** `VALIDATION_FAILED` – `status` lạ, `overdue` không phải true/false, `page` nhỏ hơn 1, `size` ngoài 1–100 (kèm `fields`).
+- **403** `FORBIDDEN` – `center_id` khác trung tâm của token.
+
+### GET /api/tickets/{id} · US6, US7
+
+- **200 OK** – phiếu như trên kèm `status_log`: mảng `{ from_status, to_status, changed_at, changed_by_name, note }` theo thứ tự thời gian (`from_status` là `null` ở dòng đầu).
+- **403** `FORBIDDEN` – phiếu của trung tâm khác. **404** `NOT_FOUND` – không có phiếu hoặc `{id}` không phải số.
+
+### POST /api/tickets/suggestion · US4
+
+Request: `{ "issue_desc": "màn hình bị sọc dọc từ tuần trước" }`. Chỉ Nhân viên tiếp nhận.
+- **200 OK** `{ "category_id": 1, "category_name": "MAN_HINH", "priority": "CAO" }`; không khớp từ khóa nào thì trả nhóm `KHAC`.
+- **400** `VALIDATION_FAILED` – `issue_desc` ngoài 10–2000 ký tự.
+
+### GET /api/issue-categories · US4
+
+- **200 OK** `[ { "category_id": 1, "category_name": "MAN_HINH", "default_priority": "CAO" } ]` (không trả từ khóa).
+
 ### POST /api/tickets · US3, US4, US5
 
 Request:
@@ -69,23 +112,24 @@ Request:
 ```
 `category_id` và `priority` để `null` thì hệ thống dùng giá trị đề xuất (FR5).
 
-- **201 Created**
+- **201 Created** – trả phiếu đầy đủ 18 trường như `GET /api/tickets/{id}` (kèm `status_log` có một dòng `MOI`), ví dụ rút gọn:
 ```json
 { "ticket_id": 88231, "ticket_code": "BH-000231/2026", "status": "MOI",
-  "category_id": 3, "priority": "TRUNG_BINH",
+  "category_name": "SAC", "priority": "TRUNG_BINH",
   "is_warranty": true, "warranty_verified": true,
   "received_at": "2026-09-08T14:30:00+07:00", "due_date": "2026-09-11T14:30:00+07:00" }
 ```
+Chỉ Nhân viên tiếp nhận được tạo phiếu (Quản lý nhận **403**).
 `due_date` luôn do hệ thống sinh (QT-04); nếu request có gửi `due_date` thì bị bỏ qua. `warranty_verified = false` khi thiếu ngày mua (QT-05).
 - **400** `VALIDATION_FAILED` – xem bảng validation.
-- **404** `NOT_FOUND` – `customer_id` hoặc `device_id` không tồn tại.
+- **404** `NOT_FOUND` – `device_id` không tồn tại. `customer_id` không tồn tại hoặc không sở hữu thiết bị thì trả **400** `VALIDATION_FAILED` với `fields.device_id` (QT-03).
 - **409** `DEVICE_HAS_OPEN_TICKET` – thiết bị đang có phiếu chưa đóng (QN-01); kèm `error.open_ticket_code`.
 
 ### PATCH /api/tickets/{id}/status · US7
 
 Request: `{ "to_status": "DANG_XU_LY", "note": "Bắt đầu kiểm tra" }`
 
-- **200 OK** – trả phiếu với `status` mới và dòng nhật ký vừa ghi.
+- **200 OK** – trả phiếu với `status` mới, `status_log` đã gồm dòng vừa ghi (dòng cuối). Phiếu trung tâm khác: **403**; `to_status` lạ: **400**; hai người đổi cùng lúc, người sau nhận **422**.
 - **404** `NOT_FOUND`.
 - **422** `INVALID_TRANSITION` – chuyển ngoài vòng đời hoặc quay lại (QT-06); dữ liệu không đổi.
 - **403** `FORBIDDEN` – vai trò không được chuyển sang trạng thái đó (Nhân viên tiếp nhận chỉ được DA_DONG, DA_HUY).
@@ -132,4 +176,4 @@ Chuyển được phép: MOI→DA_PHAN_CONG, MOI→DA_HUY, DA_PHAN_CONG→DANG_X
 | Xem danh sách, chi tiết phiếu (trung tâm mình) | ✔ | ✔ |
 | Chuyển trạng thái | Chỉ DA_DONG, DA_HUY | Mọi chuyển được phép (A4: Quản lý cập nhật thay kỹ thuật viên) |
 
-Xác thực: header `Authorization: Bearer <access_token>`; token chứa `user_id` (employee_id), `role` (NHAN_VIEN_TIEP_NHAN hoặc QUAN_LY_TRUNG_TAM) và `center_id`. Việc cấp token nằm ngoài phạm vi L2 (đăng nhập chi tiết là WON'T). Phiếu của trung tâm khác bị 403 (QT-14).
+Xác thực: header `Authorization: Bearer ...`; token chứa `user_id` (employee_id), `role` (NHAN_VIEN_TIEP_NHAN hoặc QUAN_LY_TRUNG_TAM) và `center_id`. Quản lý tài khoản vẫn nằm ngoài phạm vi L2; buổi 9–10 chỉ làm đăng nhập tối thiểu `POST /api/auth/login` để cấp token và để giao diện xử lý 401. Phiếu của trung tâm khác bị 403 (QT-14). Danh mục nhóm sự cố `GET /api/issue-categories` mở cho cả hai vai trò.
