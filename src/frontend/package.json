@@ -1,0 +1,24 @@
+{
+  "name": "smartcrm-l2-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Smart CRM Mekong Mobile - Luồng L2: giao diện tiếp nhận và theo dõi phiếu bảo hành",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "vite": "^8.3.5"
+  }
+}
