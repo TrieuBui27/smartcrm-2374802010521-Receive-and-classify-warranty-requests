@@ -81,3 +81,30 @@ Các sai lệch so với thiết kế BT1 phát sinh khi viết mã, mỗi thay 
 - **Thay đổi:** Đổi tên `test/` thành `tests/`; thêm `migrations/` và `seeds/` ở gốc; mã backend vẫn nằm trong `src/backend/`, tách thành `routes/`, `validators/`, `services/`, `repositories/`, `db/`, `errors/`.
 - **Vì sao:** Đề BT2 quy định cấu trúc tối thiểu có `tests/`, `migrations/`, `seeds/`; giữ `src/backend` để khớp sơ đồ kiến trúc và README BT1 (TD-07).
 - **Ảnh hưởng:** README mục 4, `src/backend/package.json` (đường dẫn trong các lệnh `db:migrate`, `db:seed`, `test`).
+
+## Thay đổi khi làm phiếu bảo hành, đăng nhập và giao diện (buổi 9–10)
+
+### TD-12 Dữ liệu mẫu cho thiết bị, phiếu, nhật ký và quy ước giờ Việt Nam
+- **Thay đổi:** Thêm 3 tệp seed theo tên bảng: `device.csv` (25 dòng), `ticket.csv` (25 dòng), `ticket_status_log.csv` (119 dòng). Bộ dữ liệu gốc không có ngày mua nên cột `purchase_date` do em tự sinh (có ngày mua đủ để QT-05 kiểm tra bảo hành được), không phải số liệu thật của Mekong Mobile. Cột `changed_by` của bộ dữ liệu là kỹ thuật viên (thuộc L4) nên khi nạp được đổi thành nhân viên tiếp nhận (dòng đầu tiên) hoặc Quản lý trung tâm (các dòng sau, theo A4). Thời điểm trong các cột TIMESTAMP được lưu theo giờ Việt Nam; `db/pool.js` gắn múi +07:00 khi đọc ra và đặt múi giờ phiên làm việc là Asia/Ho_Chi_Minh, nên API luôn trả ISO 8601 có +07:00.
+- **Vì sao:** Cần phiếu có sẵn ở mọi trạng thái và có phiếu quá hạn để chạy thử danh sách và đổi trạng thái; cột kiểu `TIMESTAMP` không lưu múi giờ nên phải chọn một quy ước duy nhất để QT-04 (24/72/120 giờ, bỏ Chủ nhật) và `is_overdue` không lệch 7 giờ.
+- **Ảnh hưởng:** `seeds/`, `src/backend/db/seed.js`, `src/backend/db/pool.js`, `ticket.repository.js`. Chạy lại `db:seed` không nhân đôi dữ liệu (đã thử). Ngày mua và người đổi trạng thái trong dữ liệu mẫu là dữ liệu giả lập.
+
+### TD-13 Đăng nhập tối thiểu bằng JWT
+- **Thay đổi:** SRS xếp đăng nhập vào mục không làm (WON'T) nhưng buổi 9–10 yêu cầu nhận 401 và phân quyền nên em làm bản tối thiểu: `POST /api/auth/login`, `GET /api/auth/me`, migration `007_add_employee_login.sql` (thêm `username`, `password_hash`, chỉ mục duy nhất `ux_employee_username`). Mật khẩu băm bằng bcryptjs (cost 10); token JWT HS256 sống 8 giờ, chứa `user_id`, `role`, `center_id`, khóa bí mật lấy từ `SECRET_KEY` trong `.env`. Khi sai tên đăng nhập vẫn so sánh với một giá trị băm giả và dùng cùng một thông báo để không lộ tên nào tồn tại. Giao diện lưu token trong `localStorage`.
+- **Vì sao:** Cần danh tính để áp QT-14 (chỉ thấy phiếu trung tâm mình), QT-15 (che số điện thoại) và vai trò chuyển trạng thái, mà không làm module quản lý tài khoản đầy đủ.
+- **Ảnh hưởng:** `middleware/authenticate.js`, `require-role.js`, `services/auth.service.js`, `routes/auth.routes.js`, `docs/api-contract.md`, `src/frontend/src/auth/`. Hạn chế đã biết: token trong `localStorage` bị mã JavaScript chèn vào trang (XSS) đọc được; cách an toàn hơn là cookie HttpOnly do máy chủ đặt, chưa làm. Không có đổi mật khẩu, khóa tài khoản hay đăng ký.
+
+### TD-14 Chi tiết phiếu trả thêm `allowed_transitions`
+- **Thay đổi:** `GET /api/tickets/{id}` trả thêm mảng `allowed_transitions`: các trạng thái đích mà người đang đăng nhập được chuyển tới, tính bằng `rules.allowedTargets(status, role)`. Có test viết trước (`ticket.read.test.js`).
+- **Vì sao:** Để màn hình chi tiết biết vẽ nút nào mà không sao chép luật vòng đời (QT-06) và phân quyền sang frontend; một nguồn sự thật duy nhất, tránh lệch khi luật đổi.
+- **Ảnh hưởng:** `services/ticket.service.js`, `tests/ticket.read.test.js`, `docs/api-contract.md`, `TicketDetailPage.jsx`. Hợp đồng dữ liệu 18 trường của phiếu không đổi; trường mới nằm ngoài 18 trường đó.
+
+### TD-15 Chưa làm ghi nhận thiết bị mới và màn hình tạo khách hàng
+- **Thay đổi:** Không làm `POST /api/customers/{id}/devices` (UC2, ghi nhận thiết bị) và màn hình tạo hồ sơ khách mới. `POST /api/customers` vẫn có ở API. Khi tra cứu số chưa có hồ sơ, giao diện hiện thông báo và mời kiểm tra lại số.
+- **Vì sao:** Luồng chính đủ ý nghĩa chạy được với thiết bị lấy từ dữ liệu mẫu (TD-12); ưu tiên làm đúng và có test cho UC3, UC7, đăng nhập và 4 màn hình trong thời gian buổi 9–10.
+- **Ảnh hưởng:** `docs/api-contract.md` có ghi chú tiến độ; README mục 3 và 6; UC2 mới chạy qua API. Cần làm nốt trước khi dùng thật.
+
+### TD-16 Các hạn chế triển khai khác
+- **Thay đổi:** (a) CORS chỉ cho một nguồn (`CORS_ORIGIN`, mặc định `http://localhost:5173`) và middleware tự viết, không dùng thư viện `cors`. (b) 12 tài khoản mẫu dùng chung mật khẩu `Mekong@2026` (đổi bằng `SEED_PASSWORD`). (c) `POST /api/tickets` thiếu `customer_id` trả 400 `VALIDATION_FAILED` chứ không phải 404.
+- **Vì sao:** (a) Giao diện và backend chỉ chạy cục bộ ở hai cổng cố định, ít thư viện hơn; (b) chỉ để thử nghiệm; (c) thiếu trường là lỗi dữ liệu vào, khác với "không tồn tại" (đã ghi trong hợp đồng API).
+- **Ảnh hưởng:** `middleware/cors.js`, `db/seed.js`, `validators/ticket.validator.js`, README mục 5 (phần hạn chế đã biết). Khi triển khai thật phải đổi cả ba.
