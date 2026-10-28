@@ -127,6 +127,8 @@ function createTicketService(repo, { now = () => new Date() } = {}) {
     const log = await repo.findLog(row.ticket_id);
     return {
       ...toTicketView(row, user, now()),
+      // Giao diện chỉ vẽ nút cho các bước này nên không phải sao chép luật vòng đời (QT-06, UC7 3b) sang frontend.
+      allowed_transitions: rules.allowedTargets(row.status, user.role),
       status_log: log.map(l => ({
         from_status: l.from_status ?? null, to_status: l.to_status, changed_at: toIsoVn(l.changed_at),
         changed_by_name: l.changed_by_name ?? null, note: l.note ?? null,
