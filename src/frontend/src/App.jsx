@@ -4,6 +4,7 @@ import { RequireAuth } from './components/RequireAuth';
 import LoginPage from './pages/LoginPage';
 import TicketListPage from './pages/TicketListPage';
 import TicketDetailPage from './pages/TicketDetailPage';
+import ReceiveDevicePage from './pages/ReceiveDevicePage';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <Route element={<RequireAuth><Layout /></RequireAuth>}>
           <Route path="/tickets" element={<TicketListPage />} />
           <Route path="/tickets/:id" element={<TicketDetailPage />} />
+          <Route path="/receive" element={<ReceiveDevicePage />} />
           <Route path="*" element={<Navigate to="/tickets" replace />} />
         </Route>
       </Routes>

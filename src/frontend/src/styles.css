@@ -71,3 +71,13 @@ h2 { font-size: 1.1rem; margin: 1rem 0 .5rem; }
 @media (max-width: 720px) {
   .detail div { grid-template-columns: 1fr; gap: 0; }
 }
+
+.receive { margin-top: 1rem; }
+.receive fieldset { border: 1px solid var(--line); border-radius: 6px; margin: 0 0 1rem; }
+.receive fieldset label.check { display: inline-flex; align-items: center; gap: .4rem; margin-right: 1rem; font-weight: 400; }
+.receive fieldset label.check input { width: auto; margin: 0; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+.hint { background: #eef5ff; border: 1px solid #c9dcf7; border-radius: 6px; padding: .5rem .75rem; margin: .75rem 0; }
+@media (max-width: 720px) {
+  .two { grid-template-columns: 1fr; }
+}
