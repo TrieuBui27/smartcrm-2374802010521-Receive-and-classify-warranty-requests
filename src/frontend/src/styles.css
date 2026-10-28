@@ -1,0 +1,59 @@
+:root {
+  --bg: #f5f7fa; --card: #fff; --text: #1d2733; --muted: #5f6b7a; --line: #dfe4ea;
+  --primary: #1459c7; --primary-text: #fff; --danger: #b42318; --danger-bg: #fdecea;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: var(--text); background: var(--bg); }
+a { color: var(--primary); }
+h1 { font-size: 1.4rem; margin: 0 0 1rem; }
+button, .button { font: inherit; padding: .5rem .9rem; border: 1px solid var(--primary); background: var(--primary); color: var(--primary-text);
+  border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.secondary { background: transparent; color: var(--primary); }
+input, select, textarea { font: inherit; padding: .5rem; border: 1px solid var(--line); border-radius: 6px; width: 100%; background: #fff; }
+label { display: block; margin-bottom: .75rem; font-weight: 500; }
+label input, label select, label textarea { margin-top: .25rem; font-weight: 400; }
+small { display: block; color: var(--muted); }
+
+.topbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.25rem; padding: .6rem 1rem; background: #0f2a4a; color: #fff; }
+.topbar a { color: #fff; text-decoration: none; margin-right: 1rem; }
+.topbar .brand { font-weight: 700; }
+.topbar nav { flex: 1; }
+.topbar .who { display: flex; align-items: center; gap: .75rem; font-size: .9rem; }
+.topbar .who button { padding: .25rem .6rem; background: transparent; border-color: #fff; }
+.container { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; }
+.login { max-width: 360px; margin: 10vh auto; padding: 0 1rem; }
+.login form { display: block; }
+.field-error { display: block; color: var(--danger); font-size: .85rem; font-weight: 400; }
+.alert-error { color: var(--danger); background: var(--danger-bg); padding: .5rem .75rem; border-radius: 6px; }
+
+.filters { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; align-items: end; margin-bottom: 1rem; }
+.filters label { margin: 0; min-width: 12rem; }
+.filters label.check { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.filters label.check input { width: auto; margin: 0; }
+
+.state { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 1.25rem; text-align: center; }
+.state-error { border-color: var(--danger); background: var(--danger-bg); }
+.state p { margin: 0 0 .75rem; }
+
+table.tickets { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); }
+.tickets th, .tickets td { text-align: left; padding: .55rem .7rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tickets th { background: #eef2f7; font-size: .85rem; }
+.tickets tr.overdue td:first-child { border-left: 4px solid var(--danger); }
+.late { color: var(--danger); }
+.badge { display: inline-block; padding: .1rem .55rem; border-radius: 999px; font-size: .8rem; background: #e5e7eb; }
+.badge-blue { background: #dbeafe; } .badge-indigo { background: #e0e7ff; } .badge-amber { background: #fef3c7; }
+.badge-orange { background: #ffedd5; } .badge-green { background: #dcfce7; } .badge-red { background: #fee2e2; color: var(--danger); } .badge-gray { background: #e5e7eb; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; }
+
+/* Khung hẹp (khoảng 375px): mỗi phiếu thành một thẻ, bảng không tràn ngang. */
+@media (max-width: 720px) {
+  .tickets thead { display: none; }
+  .tickets, .tickets tbody, .tickets tr, .tickets td { display: block; width: 100%; }
+  .tickets tr { margin-bottom: .75rem; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+  .tickets td { display: flex; justify-content: space-between; gap: 1rem; border: 0; padding: .35rem .75rem; text-align: right; }
+  .tickets td::before { content: attr(data-label); color: var(--muted); text-align: left; flex: none; }
+  .topbar nav { flex-basis: 100%; order: 3; }
+}
