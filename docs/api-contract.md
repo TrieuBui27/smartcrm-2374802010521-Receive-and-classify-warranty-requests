@@ -90,6 +90,7 @@ Chỉ trả phiếu của trung tâm trong token (QT-14). Sắp theo `due_date` 
 ### GET /api/tickets/{id} · US6, US7
 
 - **200 OK** – phiếu như trên kèm `status_log`: mảng `{ from_status, to_status, changed_at, changed_by_name, note }` theo thứ tự thời gian (`from_status` là `null` ở dòng đầu).
+- Kèm `allowed_transitions`: mảng các trạng thái đích mà **người đang đăng nhập** được chuyển phiếu tới (theo vòng đời QT-06 và vai trò). Ví dụ Quản lý ở `DANG_XU_LY` nhận `["CHO_LINH_KIEN","HOAN_TAT"]`; Nhân viên tiếp nhận ở `DANG_XU_LY` nhận `[]`. Giao diện chỉ vẽ nút cho các giá trị này nên không chép luật vòng đời (TD-14).
 - **403** `FORBIDDEN` – phiếu của trung tâm khác. **404** `NOT_FOUND` – không có phiếu hoặc `{id}` không phải số.
 
 ### POST /api/tickets/suggestion · US4
