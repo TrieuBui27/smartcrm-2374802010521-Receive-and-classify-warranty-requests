@@ -43,8 +43,7 @@ table.tickets { width: 100%; border-collapse: collapse; background: var(--card);
 .tickets th { background: #eef2f7; font-size: .85rem; }
 .tickets tr.overdue td:first-child { border-left: 4px solid var(--danger); }
 .late { color: var(--danger); }
-.badge { display: inline-block; padding: .1rem .55rem; border-radius: 999px; font-size: .8rem; background: #e5e7eb; }
-.badge-blue { background: #dbeafe; } .badge-indigo { background: #e0e7ff; } .badge-amber { background: #fef3c7; }
+.badge { display: inline-block; padding: .1rem .55rem; border-radius: 999px; font-size: .8rem; background: #e5e7eb; white-space: nowrap; }.badge-blue { background: #dbeafe; } .badge-indigo { background: #e0e7ff; } .badge-amber { background: #fef3c7; }
 .badge-orange { background: #ffedd5; } .badge-green { background: #dcfce7; } .badge-red { background: #fee2e2; color: var(--danger); } .badge-gray { background: #e5e7eb; }
 .pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; }
 
@@ -56,4 +55,19 @@ table.tickets { width: 100%; border-collapse: collapse; background: var(--card);
   .tickets td { display: flex; justify-content: space-between; gap: 1rem; border: 0; padding: .35rem .75rem; text-align: right; }
   .tickets td::before { content: attr(data-label); color: var(--muted); text-align: left; flex: none; }
   .topbar nav { flex-basis: 100%; order: 3; }
+}
+
+
+.detail { display: grid; gap: .5rem; margin: 0 0 1rem; }
+.detail div { display: grid; grid-template-columns: 11rem 1fr; gap: .5rem; }
+.detail dt { color: var(--muted); }
+.detail dd { margin: 0; }
+h1 .badge { vertical-align: middle; font-size: .9rem; }
+h2 { font-size: 1.1rem; margin: 1rem 0 .5rem; }
+.actions { margin-bottom: 1rem; }
+.buttons { display: flex; flex-wrap: wrap; gap: .5rem; }
+.log { list-style: none; padding: 0; margin: 0; }
+.log li { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .5rem .75rem; margin-bottom: .5rem; }
+@media (max-width: 720px) {
+  .detail div { grid-template-columns: 1fr; gap: 0; }
 }
