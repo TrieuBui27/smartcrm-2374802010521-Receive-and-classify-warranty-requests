@@ -56,3 +56,9 @@ test('chi tiết: Quản lý thấy đủ số, có status_log đúng thứ tự
   await assert.rejects(svc.getView(999, QUAN_LY), { code: 'NOT_FOUND' });
   await assert.rejects(svc.getView(232, QUAN_LY), { code: 'FORBIDDEN' });
 });
+
+test('chi tiết có allowed_transitions theo vòng đời và vai trò: Quản lý thấy bước tiếp theo, Nhân viên không có bước nào', async () => {
+  const svc = createTicketService(fakeRepo(), { now: NOW });   // ROW đang ở DANG_XU_LY
+  assert.deepEqual((await svc.getView(231, QUAN_LY)).allowed_transitions, ['CHO_LINH_KIEN', 'HOAN_TAT']);
+  assert.deepEqual((await svc.getView(231, NHAN_VIEN)).allowed_transitions, []);
+});
