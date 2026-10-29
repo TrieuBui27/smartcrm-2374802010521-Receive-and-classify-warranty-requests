@@ -8,6 +8,9 @@ const { createAuthService } = require('./services/auth.service');
 const { createAuthenticate } = require('./middleware/authenticate');
 const { authRoutes } = require('./routes/auth.routes');
 const { customerRoutes } = require('./routes/customer.routes');
+const deviceRepo = require('./repositories/device.repository');
+const { createDeviceService } = require('./services/device.service');
+const { deviceRoutes } = require('./routes/device.routes');
 const ticketRepo = require('./repositories/ticket.repository');
 const { createTicketService } = require('./services/ticket.service');
 const { ticketRoutes, issueCategoryRoutes } = require('./routes/ticket.routes');
@@ -40,7 +43,12 @@ const authService = createAuthService(authRepo, { secret: process.env.SECRET_KEY
 const authenticate = createAuthenticate(authService);
 app.use('/api/auth', authRoutes(authService, authenticate));
 // Hợp đồng API mục 6: tra cứu và tạo khách hàng chỉ dành cho Nhân viên tiếp nhận.
-app.use('/api/customers', authenticate, requireRole('NHAN_VIEN_TIEP_NHAN'), customerRoutes(createCustomerService(customerRepo)));
+const receptionOnly = [authenticate, requireRole('NHAN_VIEN_TIEP_NHAN')];
+app.use('/api/customers', ...receptionOnly, customerRoutes(createCustomerService(customerRepo)));
+// UC2: ghi nhận, xem, sửa, xóa thiết bị (đóng TD-15), cùng quyền với khách hàng.
+const devices = deviceRoutes(createDeviceService(deviceRepo));
+app.use('/api/customers', ...receptionOnly, devices.customerDevices);
+app.use('/api/devices', ...receptionOnly, devices.devices);
 const ticketService = createTicketService(ticketRepo);
 app.use('/api/issue-categories', issueCategoryRoutes(ticketService, authenticate));
 app.use('/api/tickets', ticketRoutes(ticketService, authenticate));
