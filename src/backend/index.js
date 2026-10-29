@@ -14,22 +14,27 @@ const { ticketRoutes, issueCategoryRoutes } = require('./routes/ticket.routes');
 const { errorHandler } = require('./routes/error-handler');
 const { requireRole } = require('./middleware/require-role');
 const { cors } = require('./middleware/cors');
+const { logger, requestId } = require('./logger');
 
 const app = express();
+app.use(requestId());
 app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => res.send('Hello Smart CRM'));
 
-// Giữ từ buổi 2 (TD-07): kiểm tra kết nối CSDL.
-app.get('/db-check', async (req, res) => {
+// Kiểm tra sức khỏe cho Docker healthcheck và người vận hành: 200 khi truy vấn được CSDL, 503 khi không.
+async function health(req, res) {
   try {
-    const result = await pool.query('SELECT NOW() AS server_time');
-    res.json({ status: 'OK', ...result.rows[0] });
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok', db: 'ok' });
   } catch (err) {
-    res.status(500).json({ status: 'ERROR', message: 'Không kết nối được CSDL' });
+    logger.warn('health: không kết nối được CSDL', { requestId: req.requestId, err });
+    res.status(503).json({ status: 'error', db: 'unavailable' });
   }
-});
+}
+app.get('/health', health);
+app.get('/db-check', health); // giữ đường dẫn cũ của buổi 2 (TD-07)
 
 const authService = createAuthService(authRepo, { secret: process.env.SECRET_KEY });
 const authenticate = createAuthenticate(authService);
@@ -42,4 +47,4 @@ app.use('/api/tickets', ticketRoutes(ticketService, authenticate));
 app.use(errorHandler);
 
 const port = process.env.APP_PORT || 3000;
-app.listen(port, () => console.log('Server chạy tại http://localhost:' + port));
+app.listen(port, () => logger.info('backend đã chạy', { url: 'http://localhost:' + port }));

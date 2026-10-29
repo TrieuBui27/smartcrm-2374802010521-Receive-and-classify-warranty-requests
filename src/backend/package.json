@@ -6,7 +6,7 @@
     "start": "node index.js",
     "db:migrate": "node db/migrate.js",
     "db:seed": "node db/seed.js",
-    "test": "node --test ../../tests/phone.test.js ../../tests/customer.service.test.js ../../tests/ticket.rules.test.js ../../tests/ticket.service.test.js ../../tests/ticket.repository.test.js ../../tests/ticket.contract.test.js ../../tests/auth.service.test.js ../../tests/ticket.validator.test.js ../../tests/ticket.read.test.js ../../tests/ticket.api.test.js ../../tests/ticket.create.validator.test.js ../../tests/ticket.write.api.test.js ../../tests/logger.test.js ../../tests/db.pool.test.js"
+    "test": "node --test ../../tests/phone.test.js ../../tests/customer.service.test.js ../../tests/ticket.rules.test.js ../../tests/ticket.service.test.js ../../tests/ticket.repository.test.js ../../tests/ticket.contract.test.js ../../tests/auth.service.test.js ../../tests/ticket.validator.test.js ../../tests/ticket.read.test.js ../../tests/ticket.api.test.js ../../tests/ticket.create.validator.test.js ../../tests/ticket.write.api.test.js ../../tests/logger.test.js ../../tests/db.pool.test.js ../../tests/error-handler.test.js"
   },
   "keywords": [],
   "author": "Bùi Quốc Triệu - 2374802010521",
