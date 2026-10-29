@@ -1,0 +1,9 @@
+# Ngữ cảnh build của backend là gốc repo: chỉ cần src/backend, migrations, seeds.
+**/node_modules
+**/.env
+.git
+docs
+data
+src/frontend
+tests
+*.pdf
