@@ -5,6 +5,8 @@ export function DataState({ loading, error, data, isEmpty, empty, onRetry, child
   if (error) return (
     <div className="state state-error" role="alert">
       <p>{error.message}</p>
+      {/* Lỗi 500/503 có mã tra cứu: người dùng báo mã này, người vận hành tìm đúng dòng log theo requestId. */}
+      {error.extra?.request_id && <p className="state-ref">Mã tra cứu: <code>{error.extra.request_id}</code></p>}
       {onRetry && <button type="button" onClick={onRetry}>Thử lại</button>}
     </div>
   );
