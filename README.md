@@ -16,12 +16,13 @@
 
 | Thành phần | Phiên bản |
 |---|---|
-| Node.js | 20.19 trở lên (đã chạy thử với Node 24, npm 11) |
+| Node.js | 20.19 trở lên (đã chạy thử với Node 24, npm 11; ảnh Docker dùng Node 20) |
 | PostgreSQL | 14 trở lên (đã chạy thử với PostgreSQL 18 trên Windows) |
 | Thư viện backend | express 5, pg 8, dotenv 18, csv-parse 7, bcryptjs 3, jsonwebtoken 9 (khóa phiên bản trong `src/backend/package-lock.json`) |
 | Thư viện frontend | react 19, react-dom 19, react-router-dom 7, vite 8, @vitejs/plugin-react 6 (khóa trong `src/frontend/package-lock.json`) |
-| Biến môi trường backend | xem `.env.example` ở gốc repo: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `APP_PORT`, `SECRET_KEY`, tùy chọn `CORS_ORIGIN`, `SEED_PASSWORD`. Tệp `.env` thật không commit |
+| Biến môi trường backend | xem `.env.example` ở gốc repo: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `APP_PORT`, `SECRET_KEY`, `LOG_LEVEL`, `WEB_PORT`, tùy chọn `CORS_ORIGIN`, `SEED_PASSWORD`. Giá trị trong `.env.example` là giá trị mẫu, không phải mật khẩu thật. Tệp `.env` thật không commit |
 | Biến môi trường frontend | xem `src/frontend/.env.example`: `VITE_API_BASE_URL` (địa chỉ backend). Tệp `.env` thật không commit |
+| Docker (cách chạy 1) | Docker Desktop có Docker Compose v2. Ảnh dùng: `node:20-alpine`, `postgres:16-alpine`, `nginx:1.27-alpine` |
 | Hệ điều hành | Windows (Git Bash hoặc PowerShell), macOS hoặc Linux |
 
 ## 3. Phạm vi
@@ -29,7 +30,7 @@
 **Làm:**
 
 - Tra cứu khách hàng theo số điện thoại và xem thiết bị của khách (UC1)
-- Ghi nhận khách hàng mới qua API khi chưa có hồ sơ (UC2, chưa có màn hình, xem TD-15)
+- Ghi nhận khách hàng mới và thiết bị của khách qua API, đủ CRUD cho cả khách hàng và thiết bị (UC2, chưa có màn hình, xem TD-15, TD-17)
 - Kiểm tra và hiển thị tình trạng bảo hành của thiết bị (UC8)
 - Tạo phiếu bảo hành kèm mô tả lỗi, phụ kiện, kiểm tra ràng buộc thiết bị không có phiếu chưa đóng (UC3)
 - Đề xuất nhóm sự cố và mức ưu tiên từ mô tả lỗi (UC4)
@@ -47,7 +48,7 @@
 - Không mở lại phiếu đã đóng, không gửi SMS/Zalo cho khách và không gộp hồ sơ khách trùng (thuộc luồng L1).
 - Không phê duyệt phiếu "bảo hành chưa xác minh" ở mức đầy đủ – ở L2 phiếu chỉ được đánh dấu và hiển thị.
 - Không quản lý danh mục trung tâm bảo hành và quản lý tài khoản (đổi mật khẩu, khóa tài khoản, đăng ký) – dùng 12 tài khoản mẫu có sẵn.
-- Chưa có màn hình tạo hồ sơ khách mới và endpoint ghi nhận thiết bị mới (xem TD-15).
+- Chưa có màn hình tạo hồ sơ khách mới và ghi nhận thiết bị mới (đã có API, xem TD-17).
 
 ## 4. Công nghệ và cấu trúc thư mục
 
@@ -57,6 +58,8 @@
 | Database | PostgreSQL, migration SQL đánh số trong `migrations/` |
 | Xác thực | bcryptjs (băm mật khẩu), jsonwebtoken (HS256, hết hạn sau 8 giờ) |
 | Kiểm thử | `node:test` có sẵn của Node.js |
+| Log và lỗi | Logger JSON tự viết ra stdout (`src/backend/logger.js`), có `requestId`, che dữ liệu nhạy cảm; một middleware lỗi duy nhất (TD-18) |
+| Đóng gói | Docker Compose: `db`, `api`, `web` (TD-19) |
 | Frontend | ReactJS 19 + Vite 8, React Router 7, gọi API qua `fetch` gom trong `src/api` |
 
 ```
@@ -64,7 +67,7 @@ smartcrm-2374802010521-Receive-and-classify-warranty-requests/
 ├── docs/                     # SRS, sơ đồ, hợp đồng API, nhật ký thay đổi thiết kế, khai báo AI, ảnh chạy
 │   ├── usecase.drawio, architecture.drawio, erd.drawio
 │   ├── diagrams/             # ảnh PNG xuất từ sơ đồ và wireframe
-│   ├── srs.md, api-contract.md, thay-doi-thiet-ke.md, ai-disclosure.md
+│   ├── srs.md, api-contract.md, thay-doi-thiet-ke.md, ai-disclosure.md, bug-log.md
 │   └── screenshots/          # ảnh chạy backend và giao diện
 ├── migrations/               # 001–007: 6 bảng theo DDL BT1 và cột đăng nhập của nhân viên
 ├── seeds/                    # dữ liệu mẫu CSV đặt theo tên bảng (nguồn: xem TD-10, TD-12)
@@ -75,16 +78,20 @@ smartcrm-2374802010521-Receive-and-classify-warranty-requests/
 │   │   ├── validators/       # Kiểm tra định dạng dữ liệu vào
 │   │   ├── services/         # Lớp nghiệp vụ (QT-01 đến QT-15); không biết HTTP
 │   │   ├── repositories/     # Lớp truy cập dữ liệu: chỉ chứa SQL tham số hóa
-│   │   ├── db/               # Kết nối, chạy migration, nạp seed
+│   │   ├── db/               # Kết nối, chạy migration (chờ CSDL sẵn sàng), nạp seed, nhận biết lỗi CSDL
 │   │   ├── errors/           # Lỗi nghiệp vụ dùng chung
-│   │   └── index.js          # Khởi động Express, gắn route
+│   │   ├── logger.js         # Log JSON ra stdout, requestId, che dữ liệu nhạy cảm
+│   │   ├── Dockerfile        # Ảnh backend (build từ gốc repo)
+│   │   └── index.js          # Khởi động Express, gắn route, GET /health
 │   └── frontend/
 │       ├── src/api/          # Mọi lời gọi fetch nằm ở đây (client.js, auth, tickets, customers)
 │       ├── src/hooks/        # useApi, useTickets: lấy dữ liệu, trả data / loading / error
 │       ├── src/components/   # DataState (tải, lỗi, rỗng), Badge, Field, Pagination, Layout
 │       ├── src/pages/        # LoginPage, TicketListPage, TicketDetailPage, ReceiveDevicePage
-│       └── src/auth/         # Lưu và xóa phiên đăng nhập (token)
+│       ├── src/auth/         # Lưu và xóa phiên đăng nhập (token)
+│       └── Dockerfile, nginx.conf  # Ảnh giao diện: build Vite, phục vụ bằng nginx
 ├── tests/                    # kiểm thử tự động
+├── docker-compose.yml        # db + api + web
 ├── .env.example
 ├── BT1_2374802010521_BuiQuocTrieu.pdf
 ├── .gitignore
@@ -93,6 +100,32 @@ smartcrm-2374802010521-Receive-and-classify-warranty-requests/
 
 ## 5. Cài đặt và chạy
 
+Có hai cách. **Cách 1 (Docker) chỉ cần hai lệnh** và không cần cài Node.js hay PostgreSQL; cách 2 chạy trực tiếp trên máy như các buổi trước.
+
+### Cách 1 – Docker Compose (khuyên dùng)
+
+Cần Docker Desktop đang chạy. Cổng 3000 (API) và 5173 (giao diện) phải trống: tắt `npm start`, `npm run dev` của cách 2 nếu đang chạy.
+
+```bash
+git clone https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify-warranty-requests.git
+cd smartcrm-2374802010521-Receive-and-classify-warranty-requests
+
+cp .env.example .env            # PowerShell: Copy-Item .env.example .env   (giá trị mẫu dùng được ngay)
+docker compose up -d --build    # lần đầu mất vài phút để tải ảnh và cài thư viện
+```
+
+Kiểm tra:
+
+```bash
+docker compose ps               # db và api phải là "healthy", web là "running"
+curl http://localhost:3000/health   # {"status":"ok","db":"ok"}   (PowerShell: curl.exe ...)
+docker compose logs api --tail 30   # log JSON có requestId; thấy dòng seed "thêm mới ..."
+```
+
+Container `api` tự chạy `db:migrate` và `db:seed` mỗi lần khởi động; chạy lại không lỗi, không nhân đôi (lần sau in "thêm mới 0"). Dừng: `docker compose down`. Xóa cả dữ liệu để dựng lại từ đầu: `docker compose down -v`.
+
+### Cách 2 – Node.js và PostgreSQL cài trên máy
+
 **Chạy backend trước, rồi mới chạy frontend** (giao diện gọi API ở cổng 3000).
 
 ```bash
@@ -100,7 +133,7 @@ smartcrm-2374802010521-Receive-and-classify-warranty-requests/
 git clone https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify-warranty-requests.git
 cd smartcrm-2374802010521-Receive-and-classify-warranty-requests
 
-# 2. Tạo tệp cấu hình rồi điền DB_USER, DB_PASSWORD của PostgreSQL và một SECRET_KEY bất kỳ (chuỗi dài, ngẫu nhiên)
+# 2. Tạo tệp cấu hình rồi sửa DB_USER, DB_PASSWORD theo PostgreSQL của máy em và đổi SECRET_KEY (chuỗi dài, ngẫu nhiên)
 cp .env.example .env            # PowerShell: Copy-Item .env.example .env
 
 # 3. Tạo CSDL trống
@@ -133,7 +166,7 @@ Mở trình duyệt tại `http://localhost:5173` và đăng nhập bằng một
 
 Mỗi tài khoản chỉ thấy phiếu của trung tâm mình (QT-14). Trung tâm 4 (`nv_tt04`, `ql_tt04`) có sẵn phiếu quá hạn để xem đánh dấu.
 
-**Chạy kiểm thử** (47 test; test truy vấn CSDL tự bỏ qua nếu chưa có CSDL đã migrate và seed):
+**Chạy kiểm thử** (70 test thuộc ba loại luồng đúng, biên, dữ liệu sai; cần Node.js trên máy; test truy vấn CSDL tự bỏ qua nếu chưa có CSDL đã migrate và seed theo cách 2):
 
 ```bash
 cd src/backend
@@ -145,10 +178,12 @@ npm test
 Kiểm tra backend đã chạy đúng (mở terminal khác; trên PowerShell gõ `curl.exe` thay cho `curl`, lệnh POST nên chạy bằng Git Bash hoặc dùng `Invoke-RestMethod`):
 
 ```bash
-curl http://localhost:3000/db-check                                   # {"status":"OK",...}
+curl http://localhost:3000/health                                     # {"status":"ok","db":"ok"}; tắt PostgreSQL thì 503
 curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"username":"nv_tt04","password":"Mekong@2026"}'   # 200, có access_token
 curl http://localhost:3000/api/tickets                                # 401 vì chưa gửi token
 ```
+
+**Log và lỗi:** backend ghi log JSON ra màn hình (cách 2) hoặc `docker compose logs api` (cách 1), mức log đặt bằng `LOG_LEVEL`. Khi không kết nối được CSDL, API trả 503 `DB_UNAVAILABLE` kèm `request_id`, giao diện hiện "Mã tra cứu"; tìm mã đó trong log để thấy chi tiết. Các lỗi đã gỡ ghi ở [`docs/bug-log.md`](docs/bug-log.md).
 
 **Hạn chế đã biết:**
 
@@ -156,15 +191,17 @@ curl http://localhost:3000/api/tickets                                # 401 vì 
 - Backend chỉ cho phép CORS từ một nguồn (`CORS_ORIGIN`, mặc định `http://localhost:5173`), nên frontend phải chạy ở cổng 5173.
 - Mọi tài khoản mẫu dùng chung một mật khẩu thử nghiệm; không dùng cho môi trường thật.
 
-## 6. Trạng thái hiện tại (buổi 10)
+## 6. Trạng thái hiện tại (buổi 12 – Bài tập 2, tag `v0.2`)
 
-- [x] Xử lý phản hồi BT1, ghi `docs/thay-doi-thiet-ke.md` (TD-01 → TD-16)
-- [x] Backend theo 3 lớp: khách hàng, phiếu bảo hành (tiếp nhận, danh sách, chi tiết, đổi trạng thái), đề xuất nhóm sự cố, đăng nhập và phân quyền
-- [x] Test viết trước code cho UC3 6a, 8a và UC7 3a, 4b; 47 kiểm thử `npm test` PASS
+- [x] Xử lý phản hồi BT1, ghi `docs/thay-doi-thiet-ke.md` (TD-01 → TD-19)
+- [x] Backend theo 3 lớp: khách hàng và thiết bị (đủ CRUD), phiếu bảo hành (tiếp nhận, danh sách, chi tiết, đổi trạng thái), đề xuất nhóm sự cố, đăng nhập và phân quyền
+- [x] Test viết trước code cho UC3 6a, 8a, UC7 3a, 4b và CRUD thiết bị; 70 kiểm thử `npm test` PASS
 - [x] Dữ liệu mẫu: 6 nhóm sự cố, 12 nhân viên, 139 khách, 25 thiết bị, 25 phiếu, 119 dòng nhật ký (TD-10, TD-12)
 - [x] Hợp đồng API cập nhật theo code (`docs/api-contract.md`)
-- [x] Frontend React + Vite: đăng nhập, danh sách phiếu (lọc, phân trang), chi tiết phiếu (đổi trạng thái), tiếp nhận thiết bị; đủ trạng thái đang tải, lỗi có nút thử lại, rỗng; khung 375px không tràn ngang
-- [ ] Màn hình tạo khách hàng mới và endpoint ghi nhận thiết bị mới (TD-15)
+- [x] Frontend React + Vite: đăng nhập, danh sách phiếu (lọc, phân trang), chi tiết phiếu (đổi trạng thái), tiếp nhận thiết bị; đủ trạng thái đang tải, lỗi có nút thử lại và mã tra cứu, rỗng; khung 375px không tràn ngang
+- [x] Log JSON có requestId, một middleware lỗi, 503 khi CSDL tắt mà backend không sập (TD-18); Bug Log 3 mục (`docs/bug-log.md`)
+- [x] Docker Compose chạy toàn hệ thống bằng 2 lệnh (TD-19)
+- [ ] Màn hình tạo khách hàng mới và ghi nhận thiết bị mới (đã có API)
 - [ ] Trang tổng quan Quản lý, báo cáo, quản lý tài khoản – ngoài phạm vi L2
 
 Ảnh chạy thật nằm trong `docs/screenshots/` (07 đến 15 là giao diện).
