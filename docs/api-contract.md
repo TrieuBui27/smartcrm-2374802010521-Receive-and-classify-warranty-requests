@@ -10,8 +10,12 @@ Thuật ngữ dùng đúng Bảng thuật ngữ ở `srs.md`. Tên trường tr�
 | POST | `/api/customers` | Tạo khách hàng mới | US2 |
 | GET | `/api/customers/{id}` | Xem hồ sơ khách hàng kèm thiết bị | US1 |
 | PATCH | `/api/customers/{id}` | Sửa thông tin khách hàng (vẫn kiểm tra số trùng, QT-01) | US2 |
-| DELETE | `/api/customers/{id}` | Ngừng sử dụng hồ sơ khách (QT-13), trả 204 | US2 |
+| DELETE | `/api/customers/{id}` | Ngừng sử dụng hồ sơ khách (QT-13), trả 204 | US2|
+| GET | `/api/devices/{id}` | Xem một thiết bị | US2 |
+| PATCH | `/api/devices/{id}` | Sửa thiết bị (vẫn kiểm tra serial trùng, QT-03) | US2 |
+| DELETE | `/api/devices/{id}` | Xóa thiết bị nhập nhầm chưa có phiếu, trả 204 | US2 |
 | POST | `/api/customers/{id}/devices` | Ghi nhận thiết bị của khách hàng | US2 |
+
 | GET | `/api/issue-categories` | Lấy danh sách nhóm sự cố cho ô chọn | US4 |
 | POST | `/api/tickets/suggestion` | Đề xuất nhóm sự cố và mức ưu tiên từ mô tả lỗi | US4 |
 | POST | `/api/tickets` | Tạo phiếu bảo hành (kèm tình trạng bảo hành, nhóm sự cố, hạn cam kết) | US3, US4, US5 |
@@ -20,8 +24,9 @@ Thuật ngữ dùng đúng Bảng thuật ngữ ở `srs.md`. Tên trường tr�
 | PATCH | `/api/tickets/{id}/status` | Chuyển trạng thái phiếu | US7 |
 | POST | `/api/auth/login` | Đăng nhập, nhận `access_token` | A1 |
 | GET | `/api/auth/me` | Lấy người dùng của token hiện tại | A1 |
+| GET | `/health` | Kiểm tra sức khỏe: 200 `{status:"ok",db:"ok"}`, 503 khi không truy vấn được CSDL (Docker healthcheck; `/db-check` cũ dùng chung) | NFR |
 
-> Ghi chú tiến độ buổi 9–10: đã làm mọi endpoint trên **trừ** `POST /api/customers/{id}/devices` (ghi nhận thiết bị mới, UC2). Thiết bị lấy từ dữ liệu mẫu nên luồng tiếp nhận vẫn chạy được; endpoint này ghi vào nhật ký thay đổi thiết kế.
+> Ghi chú tiến độ buổi 11–12: đã làm **mọi** endpoint trong bảng. Thiết bị là thực thể thứ hai đủ CRUD sau khách hàng (TD-17).
 ## 2. Quy ước chung
 
 - JSON, UTF-8, header `Content-Type: application/json`.
@@ -32,7 +37,8 @@ Thuật ngữ dùng đúng Bảng thuật ngữ ở `srs.md`. Tên trường tr�
 - Số điện thoại nhập vào được chuẩn hóa về `0xxxxxxxxx` (QT-02). Response che dạng `090****567` với vai trò khác Quản lý trung tâm và Ban giám đốc (QT-15).
 - Mọi lỗi cùng cấu trúc: `{ "error": { "code": "...", "message": "...", "fields": {...} } }`.
 - Mọi endpoint trừ `/api/auth/login` cần header `Authorization: Bearer ...` (token lấy từ đăng nhập); thiếu, sai chữ ký hoặc hết hạn thì **401** `UNAUTHORIZED`. Giao diện xóa token và quay về trang đăng nhập khi nhận 401.
-- Mã lỗi nghiệp vụ → HTTP: `VALIDATION_FAILED`, `INVALID_PHONE` 400; `INVALID_CREDENTIALS`, `UNAUTHORIZED` 401; `FORBIDDEN` 403; `NOT_FOUND`, `CUSTOMER_NOT_FOUND` 404; `PHONE_EXISTS`, `DEVICE_HAS_OPEN_TICKET` 409; `INVALID_TRANSITION` 422.
+- Mã lỗi nghiệp vụ → HTTP: `VALIDATION_FAILED`, `INVALID_PHONE` 400; `INVALID_CREDENTIALS`, `UNAUTHORIZED` 401; `FORBIDDEN` 403; `NOT_FOUND`, `CUSTOMER_NOT_FOUND` 404; `PHONE_EXISTS`, `DEVICE_HAS_OPEN_TICKET`, `SERIAL_EXISTS`, `DEVICE_HAS_TICKETS` 409; `INVALID_TRANSITION` 422.
+- Lỗi hệ thống (TD-18): **503** `DB_UNAVAILABLE` khi không kết nối được CSDL, **500** `INTERNAL_ERROR` với lỗi khác. Hai mã này kèm `error.request_id` (cũng có trong header `X-Request-Id` của mọi phản hồi) để tra đúng dòng log; không bao giờ trả stack, câu SQL hay tên bảng.
 
 ## 3. Chi tiết endpoint (US mức MUST: US1, US3, US5, US7)
 
@@ -62,7 +68,15 @@ Request: `{ "device_name": "iPhone 13", "serial_no": "356123456789012", "purchas
 - **201 Created** – trả thiết bị vừa tạo.
 - **400** `VALIDATION_FAILED`.
 - **404** `CUSTOMER_NOT_FOUND`.
-- **409** `SERIAL_EXISTS` – serial/IMEI đã thuộc một khách hàng (QT-03).
+- **409** `SERIAL_EXISTS` – serial/IMEI đã thuộc một khách hàng (QT-03); kèm `error.existing_device_id`.
+
+Response 201: `{ "device_id": 26, "customer_id": 84, "device_name": "Samsung Galaxy A55", "serial_no": "SN350112233445566", "purchase_date": "2026-03-05", "warranty_months": 12 }`. Bỏ trống `warranty_months` thì mặc định 12; `purchase_date` có thể `null` (chưa biết ngày mua).
+
+### GET, PATCH, DELETE /api/devices/{id} · US2
+
+- **GET 200** – thiết bị như trên; **404** `NOT_FOUND`.
+- **PATCH 200** – sửa một hoặc nhiều trường `device_name`, `serial_no`, `purchase_date`, `warranty_months` (cùng bảng validation mục 5); body rỗng **400**; serial trùng thiết bị khác **409** `SERIAL_EXISTS`; **404**.
+- **DELETE 204** – chỉ xóa được thiết bị chưa có phiếu nào (nhập nhầm); đã có phiếu thì **409** `DEVICE_HAS_TICKETS` để giữ lịch sử bảo hành; **404**.
 
 ### POST /api/auth/login · A1
 
