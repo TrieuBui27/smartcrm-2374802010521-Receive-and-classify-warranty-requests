@@ -1,0 +1,51 @@
+# Chạy toàn hệ thống bằng hai lệnh:  cp .env.example .env  rồi  docker compose up -d --build
+# db (PostgreSQL) → api (backend, tự migrate + seed) → web (giao diện). Mọi giá trị lấy từ .env.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-smartcrm}
+      POSTGRES_USER: ${DB_USER:?Điền DB_USER trong .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Điền DB_PASSWORD trong .env}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # Không mở cổng CSDL ra máy thật để không đụng PostgreSQL đang cài sẵn ở cổng 5432.
+
+  api:
+    build:
+      context: .
+      dockerfile: src/backend/Dockerfile
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-smartcrm}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY:?Điền SECRET_KEY trong .env}
+      CORS_ORIGIN: http://localhost:${WEB_PORT:-5173}
+      SEED_PASSWORD: ${SEED_PASSWORD:-Mekong@2026}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      db:
+        condition: service_healthy   # chờ PostgreSQL nhận kết nối, không chỉ chờ container khởi động
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+  web:
+    build:
+      context: src/frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:${APP_PORT:-3000}
+    depends_on:
+      api:
+        condition: service_healthy   # HEALTHCHECK trong src/backend/Dockerfile gọi GET /health
+    ports:
+      - "${WEB_PORT:-5173}:8080"
+
+volumes:
+  db_data:
