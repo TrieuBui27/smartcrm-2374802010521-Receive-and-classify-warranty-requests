@@ -9,6 +9,9 @@ types.setTypeParser(20, v => Number(v));
 // bên dưới). Đọc ra thì gắn +07:00 để thành thời điểm thật; gửi vào thì dùng toDbTime() trong repository.
 types.setTypeParser(1114, v => new Date(v.replace(' ', 'T') + '+07:00'));
 // Một pool dùng chung cho toàn bộ backend; thông số lấy từ .env (xem .env.example).
+// BUG-003: DATE (mã 1082) mặc định thành Date lúc 0 giờ theo múi giờ máy chạy; JSON đổi sang UTC nên trên máy
+// +07:00 ngày lùi một ngày. Giữ nguyên chuỗi 'YYYY-MM-DD' như hợp đồng API.
+types.setTypeParser(1082, v => v);
 const pool = new Pool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,

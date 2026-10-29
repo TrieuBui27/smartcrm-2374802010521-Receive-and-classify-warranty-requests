@@ -30,3 +30,7 @@ test('nhận biết lỗi "không dùng được CSDL" và không nhầm với l
 });
 
 test.after(() => pool.end());
+test('BUG-003: cột DATE đọc ra đúng chuỗi YYYY-MM-DD, không phụ thuộc múi giờ máy chạy', () => {
+  const { types } = require(require.resolve('pg', { paths: [require('node:path').join(__dirname, '../src/backend')] }));
+  assert.equal(types.getTypeParser(1082)('2024-10-13'), '2024-10-13');
+});
