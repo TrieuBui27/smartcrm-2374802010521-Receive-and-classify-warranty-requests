@@ -108,3 +108,20 @@ Các sai lệch so với thiết kế BT1 phát sinh khi viết mã, mỗi thay 
 - **Thay đổi:** (a) CORS chỉ cho một nguồn (`CORS_ORIGIN`, mặc định `http://localhost:5173`) và middleware tự viết, không dùng thư viện `cors`. (b) 12 tài khoản mẫu dùng chung mật khẩu `Mekong@2026` (đổi bằng `SEED_PASSWORD`). (c) `POST /api/tickets` thiếu `customer_id` trả 400 `VALIDATION_FAILED` chứ không phải 404.
 - **Vì sao:** (a) Giao diện và backend chỉ chạy cục bộ ở hai cổng cố định, ít thư viện hơn; (b) chỉ để thử nghiệm; (c) thiếu trường là lỗi dữ liệu vào, khác với "không tồn tại" (đã ghi trong hợp đồng API).
 - **Ảnh hưởng:** `middleware/cors.js`, `db/seed.js`, `validators/ticket.validator.js`, README mục 5 (phần hạn chế đã biết). Khi triển khai thật phải đổi cả ba.
+
+## Thay đổi khi tích hợp, đóng gói và xử lý lỗi (buổi 11–12, Bài tập 2)
+
+### TD-17 Làm CRUD thiết bị, đóng TD-15
+- **Thay đổi:** Thêm `POST /api/customers/{id}/devices`, `GET`, `PATCH`, `DELETE /api/devices/{id}` theo ba lớp (`device.validator.js`, `device.service.js`, `device.repository.js`, `device.routes.js`), test viết trước (`tests/device.test.js`). Serial trùng trả 409 `SERIAL_EXISTS` (QT-03); thiết bị đã có phiếu không xóa được (409 `DEVICE_HAS_TICKETS`); thiết bị nhập nhầm chưa có phiếu thì xóa hẳn vì bảng `device` của DDL BT1 không có cột `is_active`.
+- **Vì sao:** Tiêu chí S1 của BT2 cần ít nhất hai thực thể đủ CRUD; khách hàng đã đủ từ buổi 8, phiếu bảo hành không được xóa (chỉ chuyển sang Đã hủy, QT-06). Thiết bị là thực thể còn thiếu của UC2 (TD-15).
+- **Ảnh hưởng:** `src/backend/`, `docs/api-contract.md` (mục 1, 3), `README.md`. Màn hình tạo khách và thiết bị mới vẫn chưa có, dùng qua API.
+
+### TD-18 Logging JSON, middleware lỗi duy nhất và 503 khi CSDL không dùng được
+- **Thay đổi:** `src/backend/logger.js` ghi mỗi dòng log là JSON ra stdout (thời điểm ISO, mức, thông điệp, `requestId`), mức lấy từ `LOG_LEVEL`, che mật khẩu, token, khóa bí mật và số điện thoại (QT-15); không ghi query string. Middleware lỗi là nơi duy nhất ghi log lỗi: lỗi nghiệp vụ ghi INFO, lỗi hệ thống ghi một dòng ERROR. CSDL tắt hoặc hết thời gian chờ thì trả 503 `DB_UNAVAILABLE` thay vì 500; 500 và 503 kèm `request_id`, giao diện hiện mã này là "Mã tra cứu". Thêm `GET /health`.
+- **Vì sao:** Yêu cầu buổi 11 (log có ích và an toàn, dịch lỗi ở ranh giới, ghi log một lần) và phép thử "suy giảm có kiểm soát" của BT2. Phép thử này làm lộ BUG-002 (backend tắt hẳn khi PostgreSQL tắt) và BUG-003 (ngày mua lùi một ngày), ghi ở `docs/bug-log.md`.
+- **Ảnh hưởng:** `logger.js`, `routes/error-handler.js`, `db/pool.js`, `db/db-errors.js`, `index.js`, `DataState.jsx`, `docs/api-contract.md` mục 2. `console.log` chỉ còn ở hai script dòng lệnh `db:migrate`, `db:seed` để in tiến độ.
+
+### TD-19 Đóng gói bằng Docker Compose
+- **Thay đổi:** Thêm `docker-compose.yml` ba dịch vụ `db` (postgres:16-alpine), `api`, `web` và hai Dockerfile hai giai đoạn (`src/backend/Dockerfile`, `src/frontend/Dockerfile` với nginx). `api` chờ `db` healthy, `web` chờ `api` healthy (HEALTHCHECK gọi `/health`); `api` tự chạy migrate và seed khi khởi động (chạy lại không nhân đôi); `db:migrate` có thêm vòng chờ CSDL tối đa 15 lần. Ảnh nền ghim phiên bản, container chạy bằng người dùng không đặc quyền, cổng CSDL không mở ra máy thật. `.env.example` có giá trị mẫu (không phải giá trị thật) để `cp .env.example .env` rồi `docker compose up -d --build` là chạy được.
+- **Vì sao:** Phép thử thư mục trống của buổi 12 (C1) và gói chạy bằng ≤ 2 lệnh của BT3; loại bỏ khác biệt phiên bản Node, PostgreSQL giữa máy em và máy giảng viên.
+- **Ảnh hưởng:** Hai cách chạy trong README: Docker (khuyên dùng) và cách cũ với Node + PostgreSQL cài trên máy (giữ nguyên). Docker chỉ là cách đóng gói, không đổi kiến trúc ba lớp.
