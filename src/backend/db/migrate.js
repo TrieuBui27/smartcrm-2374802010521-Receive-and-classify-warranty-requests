@@ -3,10 +3,12 @@
 const fs = require('fs');
 const path = require('path');
 const pool = require('./pool');
+const { waitForDb } = require('./wait-for-db');
 
 const DIR = path.join(__dirname, '../../../migrations');
 
 async function main() {
+  await waitForDb(pool);
   await pool.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
     filename VARCHAR(255) PRIMARY KEY,
     run_at   TIMESTAMP NOT NULL DEFAULT now()
@@ -33,5 +35,5 @@ async function main() {
 }
 
 main()
-  .catch(err => { console.error('Migration lỗi:', err.message); process.exitCode = 1; })
+  .catch(err => { console.error('Migration lỗi:', err.message || err.code); process.exitCode = 1; })
   .finally(() => pool.end());
