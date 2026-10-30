@@ -94,6 +94,7 @@ smartcrm-2374802010521-Receive-and-classify-warranty-requests/
 ├── docker-compose.yml        # db + api + web
 ├── .env.example
 ├── BT1_2374802010521_BuiQuocTrieu.pdf
+├── BT2_2374802010521_BuiQuocTrieu.pdf
 ├── .gitignore
 └── README.md
 ```
@@ -219,3 +220,13 @@ Bản đầy đủ: [`docs/ai-disclosure.md`](docs/ai-disclosure.md).
 | Claude | Hỗ trợ viết mã backend buổi 8 (migration, seed, các lớp routes/services/repositories, unit test) | Tự gõ và chạy từng bước trên máy: `db:migrate`, `db:seed` chạy 2 lần, gọi API bằng curl; đối chiếu migration với DDL BT1 và mã lỗi với `docs/api-contract.md` |
 | Claude | Hỗ trợ viết mã buổi 9–10: backend phiếu bảo hành, đăng nhập JWT, test viết trước (UC3, UC7) và giao diện React/Vite 4 màn hình | Tự gõ, chạy `npm test` (47 pass), gọi API bằng PowerShell, chạy giao diện với backend và dữ liệu thật, chụp ảnh các trạng thái tải, lỗi, rỗng, khung 375px; thử lại trên bản clone mới |
 | Claude | Hỗ trợ buổi 11–12: logger, middleware lỗi và 503, gỡ BUG-002, BUG-003, CRUD thiết bị, Docker Compose, Bug Log | Tự tái lập hai lỗi, thấy test hồi quy FAIL trước PASS sau; `npm test` 70 pass; gọi API thiết bị bằng PowerShell; kiểm tra giao diện hiện Mã tra cứu khớp dòng log |
+
+**Phần em tự làm, không dùng AI:**
+
+- **Quyết định phạm vi:** tự chọn luồng L2, chốt 7 User Story sau khi gộp theo góp ý BT1, và việc bỏ vai trò kỹ thuật viên cùng các luồng L4, L5, L8, L10 khỏi phạm vi.
+- **Tự chạy mọi lệnh trên máy:** `db:migrate`, `db:seed` hai lần, `npm test`, gọi API bằng curl và PowerShell, chạy giao diện với dữ liệu thật. Kết quả AI gợi ý chỉ được giữ lại khi em đã chạy ra đúng.
+- **Tự tái lập lỗi:** tự tắt PostgreSQL khi backend đang chạy (BUG-002), tự chạy trên máy múi giờ Việt Nam để thấy ngày mua lùi một ngày (BUG-003), tự thấy test hồi quy FAIL rồi PASS sau khi sửa.
+- **Tự chụp toàn bộ ảnh minh chứng** trong báo cáo (terminal, giao diện, ba trạng thái tải, rỗng, lỗi, Docker), không dùng ảnh minh họa.
+- **Tự thử dựng lại từ đầu:** clone bản `v0.2` vào thư mục mới, cài Docker Desktop, chạy `docker compose up -d --build`, đăng nhập thử, khởi động lại `api` để thấy migrate và seed chạy lại không nhân đôi, rồi dọn dẹp.
+- **Tự quản lý git:** tự chạy từng lệnh commit, push, tạo tag `v0.2`, bấm thử các link commit trong `docs/bug-log.md` trên GitHub, và không bao giờ commit `.env`.
+- **Tự đọc lại và rà soát** báo cáo, README và tài liệu trước khi nộp; tự sửa lại các chỗ dán thiếu hoặc đặt nhầm tệp (ví dụ `docker-compose.yml` đặt sai thư mục, thiếu dòng trong `docs/api-contract.md`).
