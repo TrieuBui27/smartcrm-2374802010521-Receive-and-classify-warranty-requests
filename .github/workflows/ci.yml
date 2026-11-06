@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: ci_password_only
+          POSTGRES_DB: smartcrm
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: smartcrm
+      DB_USER: postgres
+      DB_PASSWORD: ci_password_only
+      SECRET_KEY: ci-khoa-chi-dung-trong-ci-khong-phai-khoa-that
+      LOG_LEVEL: silent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/backend/package-lock.json
+      - name: Cài thư viện backend
+        working-directory: src/backend
+        run: npm ci
+      - name: Dựng bảng và nạp dữ liệu mẫu
+        working-directory: src/backend
+        run: |
+          npm run db:migrate
+          npm run db:seed
+      - name: Chạy toàn bộ test
+        working-directory: src/backend
+        run: npm test
