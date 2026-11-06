@@ -29,6 +29,8 @@ function createTicketService(repo, { now = () => new Date() } = {}) {
   async function create(data, user) {
     const device = await repo.findDeviceById(data.device_id);
     if (!device) throw new AppError('NOT_FOUND', 'Không tìm thấy thiết bị');
+        // BUG-005 (QT-13): khách đã xóa mềm thì không lập phiếu mới. So sánh === false để repository giả không có cột này vẫn chạy.
+    if (device.customer_active === false) throw new AppError('CUSTOMER_NOT_FOUND', 'Không tìm thấy khách hàng');
     if (Number(device.customer_id) !== Number(data.customer_id)) {
       throw new AppError('VALIDATION_FAILED', 'Dữ liệu không hợp lệ',
         { fields: { device_id: 'Thiết bị không thuộc về khách hàng này' } });

@@ -12,8 +12,10 @@ const toDbTime = d => new Date(new Date(d).getTime() + 7 * 3600e3).toISOString()
 
 async function findDeviceById(id) {
   const { rows } = await pool.query(
-    `SELECT device_id, customer_id, device_name, serial_no, purchase_date::text AS purchase_date, warranty_months
-       FROM device WHERE device_id = $1`, [id]);
+    `SELECT d.device_id, d.customer_id, d.device_name, d.serial_no, d.purchase_date::text AS purchase_date,
+            d.warranty_months, c.is_active AS customer_active
+       FROM device d JOIN customer c ON c.customer_id = d.customer_id
+      WHERE d.device_id = $1`, [id]);
   return rows[0] || null;
 }
 
