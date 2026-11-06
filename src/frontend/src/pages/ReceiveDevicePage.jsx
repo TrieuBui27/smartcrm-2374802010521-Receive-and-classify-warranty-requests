@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { customersApi } from '../api/customers.api';
 import { ticketsApi } from '../api/tickets.api';
 import { useApi } from '../hooks/useApi';
@@ -11,9 +11,10 @@ const PRIORITIES = ['CAO', 'TRUNG_BINH', 'THAP'];
 
 export default function ReceiveDevicePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const categories = useApi(() => ticketsApi.nhomSuCo(), []);
 
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(location.state?.phone || '');
   const [customer, setCustomer] = useState(null);
   const [lookupError, setLookupError] = useState(null);
 
@@ -28,7 +29,7 @@ export default function ReceiveDevicePage() {
   const [error, setError] = useState(null);
 
   const traCuu = async e => {
-    e.preventDefault();
+    e?.preventDefault();
     setBusy(true);
     setLookupError(null);
     setCustomer(null);
@@ -42,6 +43,12 @@ export default function ReceiveDevicePage() {
       setBusy(false);
     }
   };
+
+  // Vừa tạo khách mới xong thì tự tra cứu để hiện ngay hồ sơ và thiết bị.
+  useEffect(() => {
+    if (location.state?.phone) traCuu();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const deXuat = async () => {
     setError(null);
@@ -89,7 +96,7 @@ export default function ReceiveDevicePage() {
         {lookupError && (
           <p className="alert-error" role="alert">
             {lookupError.code === 'CUSTOMER_NOT_FOUND'
-              ? 'Chưa có hồ sơ khách hàng với số này. Màn hình tạo hồ sơ mới chưa có trong bản này, hãy kiểm tra lại số điện thoại.'
+              ? <>Chưa có hồ sơ khách hàng với số này. <RouterLink to={`/customers/new?phone=${encodeURIComponent(phone)}`}>Tạo hồ sơ khách mới</RouterLink></>
               : lookupError.message}
           </p>
         )}

@@ -15,6 +15,7 @@ export function Layout() {
         <nav>
           <RouterLink to="/tickets">Danh sách phiếu</RouterLink>
           {user?.role === 'NHAN_VIEN_TIEP_NHAN' && <RouterLink to="/receive">Tiếp nhận thiết bị</RouterLink>}
+          {user?.role === 'NHAN_VIEN_TIEP_NHAN' && <RouterLink to="/customers/new">Khách mới</RouterLink>}
         </nav>
         <div className="who">
           <span>{user?.full_name} · {ROLE[user?.role]} · TT{user?.center_id}</span>

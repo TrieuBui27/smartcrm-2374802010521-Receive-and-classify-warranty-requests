@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import TicketListPage from './pages/TicketListPage';
 import TicketDetailPage from './pages/TicketDetailPage';
 import ReceiveDevicePage from './pages/ReceiveDevicePage';
+import NewCustomerPage from './pages/NewCustomerPage';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/tickets" element={<TicketListPage />} />
           <Route path="/tickets/:id" element={<TicketDetailPage />} />
           <Route path="/receive" element={<ReceiveDevicePage />} />
+          <Route path="/customers/new" element={<NewCustomerPage />} />
           <Route path="*" element={<Navigate to="/tickets" replace />} />
         </Route>
       </Routes>

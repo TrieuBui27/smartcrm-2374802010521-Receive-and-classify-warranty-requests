@@ -30,14 +30,14 @@
 **Làm:**
 
 - Tra cứu khách hàng theo số điện thoại và xem thiết bị của khách (UC1)
-- Ghi nhận khách hàng mới và thiết bị của khách qua API, đủ CRUD cho cả khách hàng và thiết bị (UC2, chưa có màn hình, xem TD-15, TD-17)
+- Ghi nhận khách hàng mới và thiết bị của khách qua API, đủ CRUD cho cả khách hàng và thiết bị (UC2, có màn hình tạo khách mới và thiết bị mới, xem TD-17, TD-20)
 - Kiểm tra và hiển thị tình trạng bảo hành của thiết bị (UC8)
 - Tạo phiếu bảo hành kèm mô tả lỗi, phụ kiện, kiểm tra ràng buộc thiết bị không có phiếu chưa đóng (UC3)
 - Đề xuất nhóm sự cố và mức ưu tiên từ mô tả lỗi (UC4)
 - Tự sinh hạn cam kết theo mức ưu tiên (UC5)
 - Xem danh sách phiếu bảo hành sắp theo hạn cam kết, đánh dấu phiếu quá hạn (UC6, UC9)
 - Chuyển trạng thái phiếu theo vòng đời và ghi nhật ký (UC7)
-- Đăng nhập tối thiểu (JWT) và phân quyền theo vai trò, theo trung tâm (QT-14); giao diện React gồm 4 màn hình: đăng nhập, danh sách phiếu, chi tiết phiếu, tiếp nhận thiết bị
+- Đăng nhập tối thiểu (JWT) và phân quyền theo vai trò, theo trung tâm (QT-14); giao diện React gồm 5 màn hình: đăng nhập, danh sách phiếu, chi tiết phiếu, tiếp nhận thiết bị, tạo khách mới và thiết bị mới
 
 **Không làm:**
 
@@ -48,7 +48,6 @@
 - Không mở lại phiếu đã đóng, không gửi SMS/Zalo cho khách và không gộp hồ sơ khách trùng (thuộc luồng L1).
 - Không phê duyệt phiếu "bảo hành chưa xác minh" ở mức đầy đủ – ở L2 phiếu chỉ được đánh dấu và hiển thị.
 - Không quản lý danh mục trung tâm bảo hành và quản lý tài khoản (đổi mật khẩu, khóa tài khoản, đăng ký) – dùng 12 tài khoản mẫu có sẵn.
-- Chưa có màn hình tạo hồ sơ khách mới và ghi nhận thiết bị mới (đã có API, xem TD-17).
 
 ## 4. Công nghệ và cấu trúc thư mục
 
@@ -87,7 +86,7 @@ smartcrm-2374802010521-Receive-and-classify-warranty-requests/
 │       ├── src/api/          # Mọi lời gọi fetch nằm ở đây (client.js, auth, tickets, customers)
 │       ├── src/hooks/        # useApi, useTickets: lấy dữ liệu, trả data / loading / error
 │       ├── src/components/   # DataState (tải, lỗi, rỗng), Badge, Field, Pagination, Layout
-│       ├── src/pages/        # LoginPage, TicketListPage, TicketDetailPage, ReceiveDevicePage
+│       ├── src/pages/        # LoginPage, TicketListPage, TicketDetailPage, ReceiveDevicePage, NewCustomerPage
 │       ├── src/auth/         # Lưu và xóa phiên đăng nhập (token)
 │       └── Dockerfile, nginx.conf  # Ảnh giao diện: build Vite, phục vụ bằng nginx
 ├── tests/                    # kiểm thử tự động
@@ -194,7 +193,7 @@ curl http://localhost:3000/api/tickets                                # 401 vì 
 
 ## 6. Trạng thái hiện tại (buổi 12 – Bài tập 2, tag `v0.2`)
 
-- [x] Xử lý phản hồi BT1, ghi `docs/thay-doi-thiet-ke.md` (TD-01 → TD-19)
+- [x] Xử lý phản hồi BT1, ghi `docs/thay-doi-thiet-ke.md` (TD-01 → TD-20)
 - [x] Backend theo 3 lớp: khách hàng và thiết bị (đủ CRUD), phiếu bảo hành (tiếp nhận, danh sách, chi tiết, đổi trạng thái), đề xuất nhóm sự cố, đăng nhập và phân quyền
 - [x] Test viết trước code cho UC3 6a, 8a, UC7 3a, 4b và CRUD thiết bị; 70 kiểm thử `npm test` PASS
 - [x] Dữ liệu mẫu: 6 nhóm sự cố, 12 nhân viên, 139 khách, 25 thiết bị, 25 phiếu, 119 dòng nhật ký (TD-10, TD-12)
@@ -202,7 +201,7 @@ curl http://localhost:3000/api/tickets                                # 401 vì 
 - [x] Frontend React + Vite: đăng nhập, danh sách phiếu (lọc, phân trang), chi tiết phiếu (đổi trạng thái), tiếp nhận thiết bị; đủ trạng thái đang tải, lỗi có nút thử lại và mã tra cứu, rỗng; khung 375px không tràn ngang
 - [x] Log JSON có requestId, một middleware lỗi, 503 khi CSDL tắt mà backend không sập (TD-18); Bug Log 3 mục (`docs/bug-log.md`)
 - [x] Docker Compose chạy toàn hệ thống bằng 2 lệnh (TD-19)
-- [ ] Màn hình tạo khách hàng mới và ghi nhận thiết bị mới (đã có API)
+- [x] Màn hình tạo khách hàng mới và ghi nhận thiết bị mới (TD-20, sau nhận xét BT2)
 - [ ] Trang tổng quan Quản lý, báo cáo, quản lý tài khoản – ngoài phạm vi L2
 
 Ảnh chạy thật nằm trong `docs/screenshots/` (07 đến 15 là giao diện).
