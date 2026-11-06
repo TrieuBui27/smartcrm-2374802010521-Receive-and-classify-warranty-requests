@@ -14,7 +14,7 @@ async function findById(id) {
 }
 
 async function findBySerial(serial) {
-  const { rows } = await pool.query(`SELECT ${COLS} FROM device WHERE serial_no = $1`, [serial]);
+  const { rows } = await pool.query(`SELECT ${COLS} FROM device WHERE UPPER(serial_no) = UPPER($1)`, [serial]); // BUG-006: không phân biệt hoa thường
   return rows[0] || null;
 }
 
@@ -22,7 +22,7 @@ async function findBySerial(serial) {
 async function create(customerId, { device_name, serial_no, purchase_date, warranty_months }) {
   const { rows } = await pool.query(
     `INSERT INTO device (customer_id, device_name, serial_no, purchase_date, warranty_months)
-     VALUES ($1, $2, $3, $4, $5) ON CONFLICT (serial_no) DO NOTHING RETURNING ${COLS}`,
+     VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING RETURNING ${COLS}`,
     [customerId, device_name, serial_no, purchase_date ?? null, warranty_months]);
   return rows[0] || null;
 }
