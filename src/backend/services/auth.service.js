@@ -57,7 +57,23 @@ function createAuthService(repo, { secret }) {
     }
   }
 
-  return { login, verifyToken };
+  /**
+   * Xác định người đang gọi API từ token VÀ từ bảng employee (BUG-004): tài khoản bị khóa hoặc đã xóa thì token cũ
+   * hết tác dụng ngay; vai trò và trung tâm lấy từ CSDL nên đổi vai trò cũng có hiệu lực ngay, không đợi token hết hạn.
+   * @param {string} [token] Chuỗi JWT (không kèm chữ Bearer).
+   * @returns {Promise<{employee_id: number, role: string, center_id: number}>}
+   * @throws {AppError} UNAUTHORIZED khi token không hợp lệ, tài khoản không còn hoặc bị khóa.
+   */
+  async function currentUser(token) {
+    const claims = verifyToken(token);
+    const employee = await repo.findById(claims.employee_id);
+    if (!employee || !employee.is_active) {
+      throw new AppError('UNAUTHORIZED', 'Chưa đăng nhập hoặc phiên đã hết hạn');
+    }
+    return { employee_id: employee.employee_id, role: employee.role, center_id: employee.center_id };
+  }
+
+  return { login, verifyToken, currentUser };
 }
 
 module.exports = { createAuthService };

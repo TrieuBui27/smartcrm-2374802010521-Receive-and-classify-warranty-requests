@@ -8,4 +8,11 @@ async function findByUsername(username) {
   return rows[0] || null;
 }
 
-module.exports = { findByUsername };
+// BUG-004: mỗi yêu cầu có token phải kiểm lại tài khoản còn hoạt động và vai trò hiện tại, không tin riêng nội dung token.
+async function findById(id) {
+  const { rows } = await pool.query(
+    `SELECT employee_id, full_name, role, center_id, is_active FROM employee WHERE employee_id = $1`, [id]);
+  return rows[0] || null;
+}
+
+module.exports = { findByUsername, findById };
