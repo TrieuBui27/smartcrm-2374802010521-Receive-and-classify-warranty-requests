@@ -1,6 +1,6 @@
 # Bug Log – Luồng L2: Tiếp nhận và phân loại yêu cầu bảo hành
 
-Mỗi mục ghi theo bốn bước gỡ lỗi của buổi 11: **tái lập → khoanh vùng → sửa nguyên nhân → xác nhận bằng test**. Mức độ: **Critical** (hệ thống ngừng chạy hoặc mất dữ liệu), **Major** (một chức năng chính cho kết quả sai), **Minor** (sai ở chỗ phụ, có cách tránh).
+Mỗi mục ghi theo bốn bước gỡ lỗi của buổi 11: **tái lập → khoanh vùng → sửa nguyên nhân → xác nhận bằng test**. Mức độ: **Critical** (hệ thống ngừng chạy, mất dữ liệu hoặc cho truy cập trái phép), **Major** (một chức năng chính cho kết quả sai), **Minor** (sai ở chỗ phụ, có cách tránh).
 
 Repo: `https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify-warranty-requests`
 
@@ -9,6 +9,9 @@ Repo: `https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify
 | BUG-001 | Major | Hạn cam kết và thời điểm tiếp nhận lệch 7 giờ tùy máy chạy | `aa43cbd` |
 | BUG-002 | Critical | Backend tắt hẳn khi PostgreSQL tắt hoặc khởi động lại | `768d08b` |
 | BUG-003 | Minor | Ngày mua thiết bị lùi một ngày trên máy đặt giờ Việt Nam | `1eb2054` |
+| BUG-004 | Critical | Tài khoản bị khóa nhưng token cũ vẫn dùng được tới 8 giờ | `d335bfc` |
+| BUG-005 | Major | Khách đã xóa mềm vẫn lập được phiếu bảo hành mới | `25c20ba` |
+| BUG-006 | Major | Serial/IMEI chỉ khác hoa thường vẫn được lưu thành hai thiết bị | `b896bd0` |
 
 ## BUG-001 · Major — Hạn cam kết và thời điểm tiếp nhận lệch 7 giờ tùy máy chạy
 
@@ -45,3 +48,39 @@ Repo: `https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify
 | 5. Nguyên nhân | Thư viện `pg` mặc định đổi cột `DATE` (mã kiểu 1082) thành `Date` lúc 0 giờ **theo múi giờ máy chạy**; `JSON.stringify` đổi `Date` sang UTC nên 0 giờ ngày 13 giờ Việt Nam thành 17 giờ ngày 12. Phiếu không bị vì `ticket.repository.js` đã ép `purchase_date::text`, còn `customer.repository.js` thì không |
 | 6. Cách sửa | Sửa tận gốc một chỗ thay vì ép `::text` ở từng câu SQL: `db/pool.js` đặt `types.setTypeParser(1082, v => v)` để mọi truy vấn trả nguyên chuỗi `YYYY-MM-DD` |
 | 7. Commit và xác nhận | https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify-warranty-requests/commit/1eb20548f1503f3be146b14206c28bf5b6d582cd — test "BUG-003: cột DATE đọc ra đúng chuỗi YYYY-MM-DD" trong `tests/db.pool.test.js` FAIL trước, PASS sau (chạy với `TZ=Asia/Ho_Chi_Minh`); API trả `"purchase_date": "2024-10-13"` |
+
+## BUG-004 · Critical — Tài khoản bị khóa nhưng token cũ vẫn dùng được tới 8 giờ
+
+| Dòng | Nội dung |
+|---|---|
+| 1. Mã và mức độ | BUG-004 · Critical (người đã bị khóa vẫn đọc được dữ liệu phiếu và khách hàng: truy cập trái phép, thuộc A07 và A01 của OWASP Top 10) |
+| 2. Phát hiện bởi | TC-08 (`tests/tc.api.test.js`), kiểm thử bảo mật buổi 14 |
+| 3. Triệu chứng | Nhân viên đăng nhập, nhận token; quản trị khóa tài khoản (`is_active = false`); cùng token gọi `GET /api/tickets` vẫn nhận **200** thay vì **401** (`expected 401, actual 200`), và còn dùng được tới khi token hết hạn sau 8 giờ |
+| 4. Cách tái lập | Ở commit `8b04b71`, chạy `cd src/backend` rồi `node --test --test-name-pattern="TC-08 " ../../tests/tc.api.test.js` (cần CSDL đã migrate và seed): test báo `200 !== 401` |
+| 5. Nguyên nhân | `middleware/authenticate.js` chỉ gọi `verifyToken`, tức chỉ kiểm chữ ký và hạn của JWT rồi tin luôn `role` và `center_id` trong token. Không có chỗ nào đọc lại bảng `employee` sau khi đăng nhập, nên trạng thái khóa chỉ được kiểm ở lúc đăng nhập |
+| 6. Cách sửa | Thêm `findById` ở `auth.repository.js` và `currentUser` ở `auth.service.js`: mỗi yêu cầu có token đều tra lại `employee`; không còn hoặc `is_active = false` thì 401 `UNAUTHORIZED`; vai trò và trung tâm lấy từ CSDL nên đổi quyền cũng có hiệu lực ngay. `middleware/authenticate.js` dùng `currentUser` |
+| 7. Commit và xác nhận | https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify-warranty-requests/commit/d335bfc — TC-08 FAIL (`200 !== 401`) trước khi sửa, PASS sau; toàn bộ test 80/82 pass ở commit này (còn TC-09, TC-11 đang chờ sửa) |
+
+## BUG-005 · Major — Khách đã xóa mềm vẫn lập được phiếu bảo hành mới
+
+| Dòng | Nội dung |
+|---|---|
+| 1. Mã và mức độ | BUG-005 · Major (vi phạm QT-13 ở chức năng chính UC3: lập phiếu cho khách không còn tồn tại trong hệ thống) |
+| 2. Phát hiện bởi | TC-09 (`tests/tc.integration.test.js`), kiểm thử chất lượng dữ liệu buổi 14 |
+| 3. Triệu chứng | Khách bị xóa mềm (`customer.is_active = false`) nhưng `TicketService.create` cho thiết bị của khách đó vẫn lưu phiếu thành công; test mong đợi lỗi `CUSTOMER_NOT_FOUND` hoặc `NOT_FOUND` và nhận `Missing expected rejection` (không có lỗi nào) |
+| 4. Cách tái lập | Ở commit `8b04b71`, chạy `node --test --test-name-pattern="TC-09 " ../../tests/tc.integration.test.js` trong `src/backend`. Cách tay: xóa mềm một khách có thiết bị chưa có phiếu mở rồi `POST /api/tickets` với `customer_id`, `device_id` của khách đó: nhận 201 |
+| 5. Nguyên nhân | `ticket.repository.findDeviceById` chỉ đọc bảng `device`, không nối bảng `customer`; `TicketService.create` chỉ kiểm thiết bị tồn tại và thuộc đúng `customer_id`. Không chỗ nào kiểm tra khách còn hoạt động, trong khi các hàm tra cứu khách đều lọc `is_active` |
+| 6. Cách sửa | `findDeviceById` nối `customer` và trả thêm `customer_active`; `TicketService.create` ném `CUSTOMER_NOT_FOUND` (404) khi `customer_active === false`, trước mọi bước ghi |
+| 7. Commit và xác nhận | https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify-warranty-requests/commit/25c20ba — TC-09 FAIL trước khi sửa, PASS sau; sau khi kiểm tra, không có phiếu nào được lưu cho khách đã xóa |
+
+## BUG-006 · Major — Serial/IMEI chỉ khác hoa thường vẫn được lưu thành hai thiết bị
+
+| Dòng | Nội dung |
+|---|---|
+| 1. Mã và mức độ | BUG-006 · Major (vi phạm QT-03 "serial/IMEI không trùng": cùng một máy thật có hai hồ sơ, có thể lập hai phiếu bảo hành cho cùng một máy) |
+| 2. Phát hiện bởi | TC-11 (`tests/tc.integration.test.js`), kiểm thử dữ liệu sai buổi 14 |
+| 3. Triệu chứng | Đã có thiết bị serial `TC11-SN-0001`; tạo thiết bị thứ hai với serial `tc11-sn-0001` vẫn thành công thay vì `409 SERIAL_EXISTS`; test báo `Missing expected rejection` |
+| 4. Cách tái lập | Ở commit `8b04b71`, chạy `node --test --test-name-pattern="TC-11 " ../../tests/tc.integration.test.js` trong `src/backend`. Cách tay: `POST /api/customers/{id}/devices` hai lần với `serial_no` là `ABC123` rồi `abc123`: cả hai nhận 201 |
+| 5. Nguyên nhân | Ràng buộc `UNIQUE(serial_no)` của PostgreSQL và hàm `findBySerial` (`WHERE serial_no = $1`) đều so sánh từng ký tự, phân biệt hoa thường; service chỉ `trim()` serial, không chuẩn hóa. Nhân viên gõ `abc123` thay vì `ABC123` là thành thiết bị trùng |
+| 6. Cách sửa | `findBySerial` so sánh `UPPER(serial_no) = UPPER($1)`; thêm migration `008_unique_device_serial_ci.sql` tạo chỉ mục duy nhất trên `UPPER(serial_no)` để CSDL cũng chặn khi hai yêu cầu đến cùng lúc; `create` dùng `ON CONFLICT DO NOTHING` (không chỉ định cột) nên bắt cả hai chỉ mục |
+| 7. Commit và xác nhận | https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify-warranty-requests/commit/b896bd0 — TC-11 FAIL trước khi sửa, PASS sau; `npm test` 82/82 pass, 0 fail |r h
