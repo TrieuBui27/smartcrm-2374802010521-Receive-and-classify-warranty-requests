@@ -54,5 +54,10 @@ app.use('/api/issue-categories', issueCategoryRoutes(ticketService, authenticate
 app.use('/api/tickets', ticketRoutes(ticketService, authenticate));
 app.use(errorHandler);
 
-const port = process.env.APP_PORT || 3000;
-app.listen(port, () => logger.info('backend đã chạy', { url: 'http://localhost:' + port }));
+// Chỉ mở cổng khi chạy trực tiếp (npm start); bài kiểm thử API nạp tệp này để tự mở cổng ngẫu nhiên.
+if (require.main === module) {
+  const port = process.env.APP_PORT || 3000;
+  app.listen(port, () => logger.info('backend đã chạy', { url: 'http://localhost:' + port }));
+}
+
+module.exports = { app };
