@@ -12,6 +12,7 @@ Repo: `https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify
 | BUG-004 | Critical | Tài khoản bị khóa nhưng token cũ vẫn dùng được tới 8 giờ | `d335bfc` |
 | BUG-005 | Major | Khách đã xóa mềm vẫn lập được phiếu bảo hành mới | `25c20ba` |
 | BUG-006 | Major | Serial/IMEI chỉ khác hoa thường vẫn được lưu thành hai thiết bị | `b896bd0` |
+| BUG-007 | Major | Thư viện body-parser và qs có lỗ hổng đã công bố (npm audit) | `6cdb38b` |
 
 ## BUG-001 · Major — Hạn cam kết và thời điểm tiếp nhận lệch 7 giờ tùy máy chạy
 
@@ -83,4 +84,16 @@ Repo: `https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify
 | 4. Cách tái lập | Ở commit `8b04b71`, chạy `node --test --test-name-pattern="TC-11 " ../../tests/tc.integration.test.js` trong `src/backend`. Cách tay: `POST /api/customers/{id}/devices` hai lần với `serial_no` là `ABC123` rồi `abc123`: cả hai nhận 201 |
 | 5. Nguyên nhân | Ràng buộc `UNIQUE(serial_no)` của PostgreSQL và hàm `findBySerial` (`WHERE serial_no = $1`) đều so sánh từng ký tự, phân biệt hoa thường; service chỉ `trim()` serial, không chuẩn hóa. Nhân viên gõ `abc123` thay vì `ABC123` là thành thiết bị trùng |
 | 6. Cách sửa | `findBySerial` so sánh `UPPER(serial_no) = UPPER($1)`; thêm migration `008_unique_device_serial_ci.sql` tạo chỉ mục duy nhất trên `UPPER(serial_no)` để CSDL cũng chặn khi hai yêu cầu đến cùng lúc; `create` dùng `ON CONFLICT DO NOTHING` (không chỉ định cột) nên bắt cả hai chỉ mục |
-| 7. Commit và xác nhận | https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify-warranty-requests/commit/b896bd0 — TC-11 FAIL trước khi sửa, PASS sau; `npm test` 82/82 pass, 0 fail |r h
+| 7. Commit và xác nhận | https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify-warranty-requests/commit/b896bd0 — TC-11 FAIL trước khi sửa, PASS sau; `npm test` 82/82 pass, 0 fail |
+
+## BUG-007 · Major — Thư viện body-parser và qs có lỗ hổng đã công bố
+
+| Dòng | Nội dung |
+|---|---|
+| 1. Mã và mức độ | BUG-007 · Major (npm audit xếp body-parser mức High và qs mức Moderate; chưa tái hiện được tấn công trên cấu hình này nên không xếp Critical) |
+| 2. Phát hiện bởi | `npm audit --omit=dev` ở `src/backend`, khi điền mục 7 của checklist bảo mật BT3 (phụ thuộc được ghim phiên bản và đã cảnh báo lỗ hổng) |
+| 3. Triệu chứng | `npm audit --omit=dev` báo 2 lỗ hổng (1 moderate, 1 high): `body-parser` 2.0.0 đến 2.3.0 (GHSA-27r3-jxmh-p828, từ chối dịch vụ bằng byte thừa phía sau thân yêu cầu nén) và `qs` 6.7.0 đến 6.16.0 (GHSA-6pq8-jhm2-2vcw, `qs.stringify` ném `TypeError` không bắt được). Phần giao diện `src/frontend` chạy `npm audit` ra 0 lỗ hổng |
+| 4. Cách tái lập | Ở commit trước `6cdb38b`: `cd src/backend`, `npm ci`, rồi `npm audit --omit=dev` |
+| 5. Nguyên nhân | `body-parser` và `qs` là thư viện gián tiếp của `express`. `package-lock.json` khóa chúng ở bản có lỗ hổng; lỗ hổng được công bố sau khi tệp khóa được tạo và dự án chưa có bước nào chạy `npm audit` nên không ai biết |
+| 6. Cách sửa | Chạy `npm audit fix` trong `src/backend`: nâng `body-parser` và `qs` lên bản đã vá. Chỉ đổi `package-lock.json` (9 dòng thêm, 9 dòng xóa), không đổi `package.json` hay mã nguồn |
+| 7. Commit và xác nhận | https://github.com/TrieuBui27/smartcrm-2374802010521-Receive-and-classify-warranty-requests/commit/6cdb38bbdc1f19660af5493304756eb6f1551a60 — `npm audit --omit=dev` từ 2 lỗ hổng xuống `found 0 vulnerabilities`; `npm test` vẫn 82/82 pass, luồng đang chạy không bị vỡ |
