@@ -64,11 +64,14 @@
 ```
 smartcrm-2374802010521-Receive-and-classify-warranty-requests/
 ├── docs/                     # SRS, sơ đồ, hợp đồng API, nhật ký thay đổi thiết kế, khai báo AI, ảnh chạy
+│   ├── test-plan.md, test-report.md   # Test Plan 4 mục và Test Report 12 test case (BT3)
+│   ├── deployment-guide.md            # Deployment Guide tiếng Anh (BT3)
+│   ├── api-docs/README.md             # API documentation tiếng Anh, 18 endpoint (BT3)
 │   ├── usecase.drawio, architecture.drawio, erd.drawio
 │   ├── diagrams/             # ảnh PNG xuất từ sơ đồ và wireframe
 │   ├── srs.md, api-contract.md, thay-doi-thiet-ke.md, ai-disclosure.md, bug-log.md
 │   └── screenshots/          # ảnh chạy backend và giao diện
-├── migrations/               # 001–007: 6 bảng theo DDL BT1 và cột đăng nhập của nhân viên
+├── migrations/               # 001–008: 6 bảng theo DDL BT1, cột đăng nhập của nhân viên, chỉ mục serial không phân biệt hoa thường
 ├── seeds/                    # dữ liệu mẫu CSV đặt theo tên bảng (nguồn: xem TD-10, TD-12)
 ├── src/
 │   ├── backend/
@@ -89,7 +92,8 @@ smartcrm-2374802010521-Receive-and-classify-warranty-requests/
 │       ├── src/pages/        # LoginPage, TicketListPage, TicketDetailPage, ReceiveDevicePage, NewCustomerPage
 │       ├── src/auth/         # Lưu và xóa phiên đăng nhập (token)
 │       └── Dockerfile, nginx.conf  # Ảnh giao diện: build Vite, phục vụ bằng nginx
-├── tests/                    # kiểm thử tự động
+├── tests/                    # kiểm thử tự động: 70 test cũ và 12 test case BT3 (tc.unit, tc.integration, tc.api)
+├── .github/workflows/ci.yml  # CI: migrate, seed, npm test trên GitHub Actions
 ├── docker-compose.yml        # db + api + web
 ├── .env.example
 ├── BT1_2374802010521_BuiQuocTrieu.pdf
@@ -113,6 +117,8 @@ cd smartcrm-2374802010521-Receive-and-classify-warranty-requests
 cp .env.example .env            # PowerShell: Copy-Item .env.example .env   (giá trị mẫu dùng được ngay)
 docker compose up -d --build    # lần đầu mất vài phút để tải ảnh và cài thư viện
 ```
+
+Hướng dẫn đầy đủ bằng tiếng Anh (yêu cầu môi trường, biến môi trường, cách kiểm tra): [`docs/deployment-guide.md`](docs/deployment-guide.md).
 
 Kiểm tra:
 
@@ -166,7 +172,7 @@ Mở trình duyệt tại `http://localhost:5173` và đăng nhập bằng một
 
 Mỗi tài khoản chỉ thấy phiếu của trung tâm mình (QT-14). Trung tâm 4 (`nv_tt04`, `ql_tt04`) có sẵn phiếu quá hạn để xem đánh dấu.
 
-**Chạy kiểm thử** (70 test thuộc ba loại luồng đúng, biên, dữ liệu sai; cần Node.js trên máy; test truy vấn CSDL tự bỏ qua nếu chưa có CSDL đã migrate và seed theo cách 2):
+**Chạy kiểm thử** (82 test: 70 test cũ và 12 test case của BT3, ba loại luồng đúng, biên, dữ liệu sai cùng bảo mật và tái lập lỗi; cần Node.js trên máy; test truy vấn CSDL tự bỏ qua nếu chưa có CSDL đã migrate và seed theo cách 2). Cùng bộ test này chạy tự động trên GitHub Actions mỗi lần push:
 
 ```bash
 cd src/backend
@@ -191,20 +197,24 @@ curl http://localhost:3000/api/tickets                                # 401 vì 
 - Backend chỉ cho phép CORS từ một nguồn (`CORS_ORIGIN`, mặc định `http://localhost:5173`), nên frontend phải chạy ở cổng 5173.
 - Mọi tài khoản mẫu dùng chung một mật khẩu thử nghiệm; không dùng cho môi trường thật.
 
-## 6. Trạng thái hiện tại (buổi 12 – Bài tập 2, tag `v0.2`)
+## 6. Trạng thái hiện tại (buổi 14 – Bài tập 3, tag `v1.0`)
 
-- [x] Xử lý phản hồi BT1, ghi `docs/thay-doi-thiet-ke.md` (TD-01 → TD-20)
+- [x] Xử lý phản hồi BT1, ghi `docs/thay-doi-thiet-ke.md` (TD-01 → TD-21)
 - [x] Backend theo 3 lớp: khách hàng và thiết bị (đủ CRUD), phiếu bảo hành (tiếp nhận, danh sách, chi tiết, đổi trạng thái), đề xuất nhóm sự cố, đăng nhập và phân quyền
-- [x] Test viết trước code cho UC3 6a, 8a, UC7 3a, 4b và CRUD thiết bị; 70 kiểm thử `npm test` PASS
+- [x] Test viết trước code cho UC3 6a, 8a, UC7 3a, 4b và CRUD thiết bị; 82 kiểm thử `npm test` PASS (70 test cũ và 12 test case của BT3)
 - [x] Dữ liệu mẫu: 6 nhóm sự cố, 12 nhân viên, 139 khách, 25 thiết bị, 25 phiếu, 119 dòng nhật ký (TD-10, TD-12)
 - [x] Hợp đồng API cập nhật theo code (`docs/api-contract.md`)
 - [x] Frontend React + Vite: đăng nhập, danh sách phiếu (lọc, phân trang), chi tiết phiếu (đổi trạng thái), tiếp nhận thiết bị; đủ trạng thái đang tải, lỗi có nút thử lại và mã tra cứu, rỗng; khung 375px không tràn ngang
-- [x] Log JSON có requestId, một middleware lỗi, 503 khi CSDL tắt mà backend không sập (TD-18); Bug Log 3 mục (`docs/bug-log.md`)
+- [x] Log JSON có requestId, một middleware lỗi, 503 khi CSDL tắt mà backend không sập (TD-18)
 - [x] Docker Compose chạy toàn hệ thống bằng 2 lệnh (TD-19)
 - [x] Màn hình tạo khách hàng mới và ghi nhận thiết bị mới (TD-20, sau nhận xét BT2)
+- [x] Test Plan 4 mục (`docs/test-plan.md`) và Test Report 12 test case chạy thật, có ảnh chụp (`docs/test-report.md`)
+- [x] Bug Log 6 mục; BUG-004 (Critical), BUG-005 và BUG-006 (Major) phát hiện ở BT3, mỗi bug một commit riêng (`docs/bug-log.md`)
+- [x] CI trên GitHub Actions: migrate, seed và `npm test` trên Ubuntu sạch (`.github/workflows/ci.yml`)
+- [x] Deployment Guide (`docs/deployment-guide.md`) và API documentation (`docs/api-docs/README.md`) bằng tiếng Anh
 - [ ] Trang tổng quan Quản lý, báo cáo, quản lý tài khoản – ngoài phạm vi L2
 
-Ảnh chạy thật nằm trong `docs/screenshots/` (07 đến 15 là giao diện).
+Ảnh chạy thật nằm trong `docs/screenshots/` (07 đến 15 là giao diện, `TC-01` đến `TC-12` là ảnh chạy từng test case, `ci-xanh.png` là CI).
 
 ## 7. Khai báo sử dụng công cụ AI
 
@@ -219,6 +229,7 @@ Bản đầy đủ: [`docs/ai-disclosure.md`](docs/ai-disclosure.md).
 | Claude | Hỗ trợ viết mã backend buổi 8 (migration, seed, các lớp routes/services/repositories, unit test) | Tự gõ và chạy từng bước trên máy: `db:migrate`, `db:seed` chạy 2 lần, gọi API bằng curl; đối chiếu migration với DDL BT1 và mã lỗi với `docs/api-contract.md` |
 | Claude | Hỗ trợ viết mã buổi 9–10: backend phiếu bảo hành, đăng nhập JWT, test viết trước (UC3, UC7) và giao diện React/Vite 4 màn hình | Tự gõ, chạy `npm test` (47 pass), gọi API bằng PowerShell, chạy giao diện với backend và dữ liệu thật, chụp ảnh các trạng thái tải, lỗi, rỗng, khung 375px; thử lại trên bản clone mới |
 | Claude | Hỗ trợ buổi 11–12: logger, middleware lỗi và 503, gỡ BUG-002, BUG-003, CRUD thiết bị, Docker Compose, Bug Log | Tự tái lập hai lỗi, thấy test hồi quy FAIL trước PASS sau; `npm test` 70 pass; gọi API thiết bị bằng PowerShell; kiểm tra giao diện hiện Mã tra cứu khớp dòng log |
+| Claude | Hỗ trợ buổi 13–14: đề xuất đầu vào bất thường để thử, viết 12 test case, bản sửa BUG-004 đến BUG-006, màn hình tạo khách mới, CI, Deployment Guide, API docs, Test Plan, Test Report | Tự chạy từng test case bằng `--test-name-pattern` và chụp ảnh; thấy test FAIL trước, PASS sau khi sửa; `npm test` 82/82 và CI xanh; tự gõ, commit từng bug và mở lại link commit ở cửa sổ ẩn danh |
 
 **Phần em tự làm, không dùng AI:**
 
@@ -227,5 +238,5 @@ Bản đầy đủ: [`docs/ai-disclosure.md`](docs/ai-disclosure.md).
 - **Tự tái lập lỗi:** tự tắt PostgreSQL khi backend đang chạy (BUG-002), tự chạy trên máy múi giờ Việt Nam để thấy ngày mua lùi một ngày (BUG-003), tự thấy test hồi quy FAIL rồi PASS sau khi sửa.
 - **Tự chụp toàn bộ ảnh minh chứng** trong báo cáo (terminal, giao diện, ba trạng thái tải, rỗng, lỗi, Docker), không dùng ảnh minh họa.
 - **Tự thử dựng lại từ đầu:** clone bản `v0.2` vào thư mục mới, cài Docker Desktop, chạy `docker compose up -d --build`, đăng nhập thử, khởi động lại `api` để thấy migrate và seed chạy lại không nhân đôi, rồi dọn dẹp.
-- **Tự quản lý git:** tự chạy từng lệnh commit, push, tạo tag `v0.2`, bấm thử các link commit trong `docs/bug-log.md` trên GitHub, và không bao giờ commit `.env`.
+- **Tự quản lý git:** tự chạy từng lệnh commit, push, tạo tag `v0.2` và `v1.0`, bấm thử các link commit trong `docs/bug-log.md` trên GitHub, và không bao giờ commit `.env`.
 - **Tự đọc lại và rà soát** báo cáo, README và tài liệu trước khi nộp; tự sửa lại các chỗ dán thiếu hoặc đặt nhầm tệp (ví dụ `docker-compose.yml` đặt sai thư mục, thiếu dòng trong `docs/api-contract.md`).
