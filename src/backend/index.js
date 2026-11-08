@@ -20,6 +20,7 @@ const { cors } = require('./middleware/cors');
 const { logger, requestId } = require('./logger');
 
 const app = express();
+app.disable('x-powered-by'); // không lộ tên framework trong phản hồi (checklist bảo mật mục 5)
 app.use(requestId());
 app.use(cors());
 app.use(express.json());
