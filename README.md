@@ -66,7 +66,8 @@ smartcrm-2374802010521-Receive-and-classify-warranty-requests/
 ├── docs/                     # SRS, sơ đồ, hợp đồng API, nhật ký thay đổi thiết kế, khai báo AI, ảnh chạy
 │   ├── test-plan.md, test-report.md   # Test Plan 4 mục và Test Report 12 test case (BT3)
 │   ├── deployment-guide.md            # Deployment Guide tiếng Anh (BT3)
-│   ├── api-docs/README.md             # API documentation tiếng Anh, 18 endpoint (BT3)
+│   ├── api-docs/README.md             # API documentation tiếng Anh, 18 endpoint, có ví dụ thật (BT3)
+│   ├── checklist-bao-mat.md           # Checklist bảo mật 7 mục kèm ảnh sec-1 đến sec-7 (BT3)
 │   ├── usecase.drawio, architecture.drawio, erd.drawio
 │   ├── diagrams/             # ảnh PNG xuất từ sơ đồ và wireframe
 │   ├── srs.md, api-contract.md, thay-doi-thiet-ke.md, ai-disclosure.md, bug-log.md
@@ -118,7 +119,7 @@ cp .env.example .env            # PowerShell: Copy-Item .env.example .env   (gi�
 docker compose up -d --build    # lần đầu mất vài phút để tải ảnh và cài thư viện
 ```
 
-Hướng dẫn đầy đủ bằng tiếng Anh (yêu cầu môi trường, biến môi trường, cách kiểm tra): [`docs/deployment-guide.md`](docs/deployment-guide.md).
+Hướng dẫn đầy đủ bằng tiếng Anh (Requirements, Setup steps, Environment variables, Sample data, Verify it works, HTTPS, Troubleshooting): [`docs/deployment-guide.md`](docs/deployment-guide.md).
 
 Kiểm tra:
 
@@ -197,7 +198,7 @@ curl http://localhost:3000/api/tickets                                # 401 vì 
 - Backend chỉ cho phép CORS từ một nguồn (`CORS_ORIGIN`, mặc định `http://localhost:5173`), nên frontend phải chạy ở cổng 5173.
 - Mọi tài khoản mẫu dùng chung một mật khẩu thử nghiệm; không dùng cho môi trường thật.
 
-## 6. Trạng thái hiện tại (buổi 14 – Bài tập 3, tag `v1.0`)
+## 6. Trạng thái hiện tại (buổi 15 – Bài tập 3, tag `v1.0`)
 
 - [x] Xử lý phản hồi BT1, ghi `docs/thay-doi-thiet-ke.md` (TD-01 → TD-21)
 - [x] Backend theo 3 lớp: khách hàng và thiết bị (đủ CRUD), phiếu bảo hành (tiếp nhận, danh sách, chi tiết, đổi trạng thái), đề xuất nhóm sự cố, đăng nhập và phân quyền
@@ -209,12 +210,13 @@ curl http://localhost:3000/api/tickets                                # 401 vì 
 - [x] Docker Compose chạy toàn hệ thống bằng 2 lệnh (TD-19)
 - [x] Màn hình tạo khách hàng mới và ghi nhận thiết bị mới (TD-20, sau nhận xét BT2)
 - [x] Test Plan 4 mục (`docs/test-plan.md`) và Test Report 12 test case chạy thật, có ảnh chụp (`docs/test-report.md`)
-- [x] Bug Log 6 mục; BUG-004 (Critical), BUG-005 và BUG-006 (Major) phát hiện ở BT3, mỗi bug một commit riêng (`docs/bug-log.md`)
+- [x] Bug Log 7 mục; BUG-004 (Critical), BUG-005 và BUG-006 (Major) phát hiện ở BT3, mỗi bug một commit riêng; BUG-007 là lỗ hổng thư viện phát hiện bằng `npm audit` và sửa bằng `npm audit fix` (`docs/bug-log.md`)
 - [x] CI trên GitHub Actions: migrate, seed và `npm test` trên Ubuntu sạch (`.github/workflows/ci.yml`)
-- [x] Deployment Guide (`docs/deployment-guide.md`) và API documentation (`docs/api-docs/README.md`) bằng tiếng Anh
+- [x] Deployment Guide với năm mục theo đề, thêm HTTPS và Troubleshooting (`docs/deployment-guide.md`) và API documentation 18 endpoint có ví dụ request/response chạy thật (`docs/api-docs/README.md`), cả hai bằng tiếng Anh
+- [x] Checklist bảo mật 7 mục, mỗi mục có lệnh minh chứng và ảnh `sec-1` đến `sec-7` (`docs/checklist-bao-mat.md`); đã tắt header `X-Powered-By`
 - [ ] Trang tổng quan Quản lý, báo cáo, quản lý tài khoản – ngoài phạm vi L2
 
-Ảnh chạy thật nằm trong `docs/screenshots/` (07 đến 15 là giao diện, `TC-01` đến `TC-12` là ảnh chạy từng test case, `ci-xanh.png` là CI).
+Ảnh chạy thật nằm trong `docs/screenshots/` (07 đến 15 là giao diện, `TC-01` đến `TC-12` là ảnh chạy từng test case, `ci-xanh.png` là CI, `sec-1.png` đến `sec-7.png` là ảnh checklist bảo mật).
 
 ## 7. Khai báo sử dụng công cụ AI
 
@@ -230,6 +232,7 @@ Bản đầy đủ: [`docs/ai-disclosure.md`](docs/ai-disclosure.md).
 | Claude | Hỗ trợ viết mã buổi 9–10: backend phiếu bảo hành, đăng nhập JWT, test viết trước (UC3, UC7) và giao diện React/Vite 4 màn hình | Tự gõ, chạy `npm test` (47 pass), gọi API bằng PowerShell, chạy giao diện với backend và dữ liệu thật, chụp ảnh các trạng thái tải, lỗi, rỗng, khung 375px; thử lại trên bản clone mới |
 | Claude | Hỗ trợ buổi 11–12: logger, middleware lỗi và 503, gỡ BUG-002, BUG-003, CRUD thiết bị, Docker Compose, Bug Log | Tự tái lập hai lỗi, thấy test hồi quy FAIL trước PASS sau; `npm test` 70 pass; gọi API thiết bị bằng PowerShell; kiểm tra giao diện hiện Mã tra cứu khớp dòng log |
 | Claude | Hỗ trợ buổi 13–14: đề xuất đầu vào bất thường để thử, viết 12 test case, bản sửa BUG-004 đến BUG-006, màn hình tạo khách mới, CI, Deployment Guide, API docs, Test Plan, Test Report | Tự chạy từng test case bằng `--test-name-pattern` và chụp ảnh; thấy test FAIL trước, PASS sau khi sửa; `npm test` 82/82 và CI xanh; tự gõ, commit từng bug và mở lại link commit ở cửa sổ ẩn danh |
+| Claude | Hỗ trợ buổi 15: đối chiếu bài với đề BT3, đổi tên mục Deployment Guide, bổ sung ví dụ request/response cho 18 endpoint API docs, soạn checklist bảo mật 7 mục | Tự chạy bảy nhóm lệnh của checklist và chụp ảnh `sec-1` đến `sec-7`; `npm audit` báo 0 vulnerabilities; tắt header `X-Powered-By` bằng một commit riêng; ví dụ của một số endpoint do Claude chạy, đã ghi rõ trong `docs/ai-disclosure.md` |
 
 **Phần em tự làm, không dùng AI:**
 
