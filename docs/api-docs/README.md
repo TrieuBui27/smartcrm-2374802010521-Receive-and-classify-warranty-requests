@@ -42,6 +42,9 @@ English version of `docs/api-contract.md` (18 endpoints). Each endpoint has seve
 | 17 | `GET /api/tickets/{id}` | Read a ticket with its status log (US6, US7). |
 | 18 | `PATCH /api/tickets/{id}/status` | Move a ticket to another status (US7). |
 
+Two more routes exist only for earlier sessions and are not part of the API: `GET /` returns the text `Hello Smart CRM`, and `GET /db-check` is the old name of `GET /health` (TD-07). Counting the routes in the code gives these 18 plus the two.
+
+
 ## Endpoints
 
 ### 1. `GET /health`
