@@ -39,6 +39,9 @@ jobs:
       - name: Cài thư viện backend
         working-directory: src/backend
         run: npm ci
+      - name: Kiểm tra lỗ hổng thư viện (npm audit)
+        working-directory: src/backend
+        run: npm audit --omit=dev --audit-level=high
       - name: Dựng bảng và nạp dữ liệu mẫu
         working-directory: src/backend
         run: |
